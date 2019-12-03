@@ -1,8 +1,7 @@
 import datetime as dt
 import struct
 
-UINT64_SIZE = 8
-UINT32_SIZE = 4
+
 HEADER_FORMAT = 'LLI'
 HEADER_SIZE = struct.calcsize('LLI')
 
