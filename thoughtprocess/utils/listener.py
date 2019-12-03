@@ -2,6 +2,7 @@ import errno
 import socket
 from .connection import Connection
 
+
 class Listener:
 
     def __init__(self, port, host='0.0.0.0', backlog=1000, reuseaddr=True):
@@ -10,18 +11,18 @@ class Listener:
         self.backlog = backlog
         self.reuseaddr = reuseaddr
 
-
     def __repr__(self):
-        return f'Listener(port={self.port}, host={self.host!r}, backlog={self.backlog}, reuseaddr={self.reuseaddr})'
-
+        return f'Listener(\
+            port={self.port}, \
+                host={self.host!r}, \
+                    backlog={self.backlog}, \
+                        reuseaddr={self.reuseaddr})'
 
     def __enter__(self):
         self.start()
 
-
     def __exit__(self, exc_type, exc_val, exc_tb):
         self.stop()
-
 
     def start(self):
         self.server = socket.socket()
@@ -36,16 +37,14 @@ class Listener:
                 print(f'ERROR: {e}')
             return
         self.server.listen(self.backlog)
-        
 
     def stop(self):
         try:
             self.server.close()
-        except AttributeError as e:
+        except AttributeError:
             print('ERROR: Server did not start listening yet.')
         except Exception as e:
-                print(e)
-            
+            print(e)
 
     def accept(self):
         client, _ = self.server.accept()

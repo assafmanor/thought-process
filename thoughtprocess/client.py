@@ -1,6 +1,4 @@
 import datetime as dt
-import socket
-from .utils import Connection
 from .thought import Thought
 
 HEADER_FORMAT = 'QQI'
