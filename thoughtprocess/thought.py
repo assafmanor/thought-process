@@ -36,11 +36,11 @@ thought={self.thought!r})'
             int(dt.datetime.timestamp(self.timestamp)),
             len(self.thought)
             )
-        return header + self.thought.encode()
+        return header + self.thought.encode('utf-8')
 
     def deserialize(data):
         user_id, timestamp, _ = struct.unpack(HEADER_FORMAT, data[:20])
-        thought = data[20:].decode()
+        thought = data[20:].decode('utf-8')
         time = dt.datetime.fromtimestamp(timestamp)
         return Thought(user_id, time, thought)
 
