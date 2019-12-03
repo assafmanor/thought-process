@@ -3,7 +3,8 @@ import struct
 
 UINT64_SIZE = 8
 UINT32_SIZE = 4
-HEADER_FORMAT = 'QQI'
+HEADER_FORMAT = 'LLI'
+HEADER_SIZE = struct.calcsize('LLI')
 
 
 class Thought:
@@ -39,7 +40,7 @@ thought={self.thought!r})'
         return header + self.thought.encode('utf-8')
 
     def deserialize(data):
-        user_id, timestamp, _ = struct.unpack(HEADER_FORMAT, data[:20])
+        user_id, timestamp, _ = struct.unpack(HEADER_FORMAT, data[:HEADER_SIZE])
         thought = data[20:].decode('utf-8')
         time = dt.datetime.fromtimestamp(timestamp)
         return Thought(user_id, time, thought)

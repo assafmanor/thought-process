@@ -8,8 +8,8 @@ from .utils import Listener
 
 UINT64_SIZE = 8
 UINT32_SIZE = 4
-HEADER_FORMAT = 'QQI'
-HEADER_SIZE = struct.calcsize('QQI')
+HEADER_FORMAT = 'LLI'
+HEADER_SIZE = struct.calcsize('LLI')
 
 
 class FileHandler:

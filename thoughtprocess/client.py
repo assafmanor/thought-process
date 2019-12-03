@@ -1,7 +1,7 @@
 import datetime as dt
 from .thought import Thought
 
-HEADER_FORMAT = 'QQI'
+HEADER_FORMAT = 'LLI'
 
 
 def upload_thought(connection, user_id, thought):
