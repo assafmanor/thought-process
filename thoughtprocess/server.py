@@ -8,6 +8,7 @@ from .thought import Thought
 from .utils import Listener
 from .utils import Connection
 
+
 UINT64_SIZE = 8
 UINT32_SIZE = 4
 HEADER_FORMAT = 'QQI'
