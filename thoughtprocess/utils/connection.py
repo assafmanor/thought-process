@@ -13,7 +13,7 @@ class Connection:
         server_ip, server_port = self.socket.getpeername()
         client_ip, client_port = self.socket.getsockname()
         return f'<Connection from {client_ip}:{client_port} \
-            to {server_ip}:{server_port}>'
+to {server_ip}:{server_port}>'
 
     def __enter__(self):
         return self

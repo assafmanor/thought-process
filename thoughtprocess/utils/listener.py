@@ -12,11 +12,10 @@ class Listener:
         self.reuseaddr = reuseaddr
 
     def __repr__(self):
-        return f'Listener(\
-            port={self.port}, \
-                host={self.host!r}, \
-                    backlog={self.backlog}, \
-                        reuseaddr={self.reuseaddr})'
+        return f'Listener(port={self.port}, \
+host={self.host!r}, \
+backlog={self.backlog}, \
+reuseaddr={self.reuseaddr})'
 
     def __enter__(self):
         self.start()

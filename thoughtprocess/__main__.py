@@ -76,4 +76,4 @@ def upload(address, user, thought):
 
 
 if __name__ == '__main__':
-    main(prog_name='thought-process')
+    main(prog_name='thoughtprocess')

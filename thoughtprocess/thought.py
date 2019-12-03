@@ -15,8 +15,8 @@ class Thought:
 
     def __repr__(self):
         return f'Thought(user_id={self.user_id}, \
-            timestamp={self.timestamp!r}, \
-                thought={self.thought!r})'
+timestamp={self.timestamp!r}, \
+thought={self.thought!r})'
 
     def __str__(self):
         time_format = f"{self.timestamp.strftime('%Y-%m-%d %H:%M:%S')}"
