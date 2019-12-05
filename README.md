@@ -2,7 +2,8 @@
 
 # Thought Process
 
-A hardware that can read minds, and upload snapshots of cognitions!
+A hardware that can read minds, and upload snapshots of cognitions!\
+See [full documentation](https://thought-process.readthedocs.io/).
 
 ## Installation
 
