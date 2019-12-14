@@ -1,8 +1,10 @@
 [![Build Status](https://travis-ci.org/assafmanor/thought-process.svg?branch=master)](https://travis-ci.org/assafmanor/thought-process)
+[![codecov](https://codecov.io/gh/assafmanor/thought-process/branch/master/graph/badge.svg)](https://codecov.io/gh/assafmanor/thought-process)
 
 # Thought Process
 
-A hardware that can read minds, and upload snapshots of cognitions!
+A hardware that can read minds, and upload snapshots of cognitions!\
+See [full documentation](https://thought-process.readthedocs.io/).
 
 ## Installation
 
