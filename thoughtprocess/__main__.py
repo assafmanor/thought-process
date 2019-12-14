@@ -4,6 +4,7 @@ from .utils import is_address_valid
 from . import run_server
 from . import run_webserver
 from . import upload_thought
+from . import Reader
 
 
 ARG_FORMAT_ERROR = 'arguments are not in the correct format.'
@@ -70,6 +71,20 @@ def upload(address, user, thought):
         print('done')
     except ArgError:
         print(f'ERROR: {ARG_FORMAT_ERROR}')
+    except Exception as error:
+        print(f'ERROR: {error}')
+        return 1
+
+
+@main.command(short_help='PATH')
+@click.argument('path')
+def read(path):
+    try:
+        with Reader(path) as reader:
+            for snapshot in reader:
+                print(f'{snapshot}\n')
+    except KeyboardInterrupt:
+        return
     except Exception as error:
         print(f'ERROR: {error}')
         return 1

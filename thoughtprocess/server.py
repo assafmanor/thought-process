@@ -6,10 +6,8 @@ from .thought import Thought
 from .utils import Listener
 
 
-UINT64_SIZE = 8
-UINT32_SIZE = 4
 HEADER_FORMAT = 'LLI'
-HEADER_SIZE = struct.calcsize('LLI')
+HEADER_SIZE = struct.calcsize(HEADER_FORMAT)
 
 
 class FileHandler:

@@ -21,6 +21,9 @@ project = 'Thought Process'
 copyright = '2019, Assaf Manor'
 author = 'Assaf Manor'
 
+# The full version, including alpha/beta/rc tags
+release = '0.0.1'
+
 
 # -- General configuration ---------------------------------------------------
 
