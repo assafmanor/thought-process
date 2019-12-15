@@ -69,8 +69,9 @@ class ConnectionHandler(threading.Thread):
         super().__init__()
         self.connection = connection
 
-    def set_file_handler(file_handler):
-        ConnectionHandler.file_handler = file_handler
+    @classmethod
+    def set_file_handler(cls, file_handler):
+        cls.file_handler = file_handler
 
     def run(self):
         '''

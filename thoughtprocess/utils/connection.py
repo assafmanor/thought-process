@@ -1,5 +1,8 @@
 import socket
+import struct
 
+UINT32 = 'I'
+UINT32_SIZE = struct.calcsize(UINT32)
 
 ERROR_MESSAGE = "ERROR: Couldn't receive data from client successfully."
 
@@ -29,6 +32,16 @@ to {server_ip}:{server_port}>'
 
     def send(self, data):
         self.socket.sendall(data)
+
+    def send_message(self, message_str):
+        msg_size = len(message_str)
+        data = struct.pack(UINT32, msg_size)
+        data += message_str.encode()
+        self.send(data)
+        
+    def receive_message(self):
+        (msg_size, ) = struct.unpack(UINT32, self.receive(UINT32_SIZE))
+        return self.receive(msg_size).decode()
 
     def receive(self, size):
         data = bytearray()

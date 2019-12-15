@@ -4,18 +4,18 @@ import pathlib
 import struct
 
 
-_USER_INFO_FIRST_FORMAT = 'QI'
-_USER_INFO_SECOND_FORMAT = 'Ic'
-_TIMESTAMP_FORMAT = 'Q'
-_TRANSLATION_FORMAT = 'ddd'
-_ROTATION_FORMAT = 'dddd'
-_IMAGE_DIMS_FORMAT = 'II'
-_FEELINGS_FORMAT = 'ffff'
+_USER_INFO_FIRST = 'QI'
+_USER_INFO_SECOND = 'Ic'
+_TIMESTAMP = 'Q'
+_TRANSLATION = 'ddd'
+_ROTATION = 'dddd'
+_IMAGE_DIMS = 'II'
+_FEELINGS = 'ffff'
 
 _ERROR_INVALID_FILE = 'file is corrupted.'
 
 
-class Snapshot():
+class ReaderSnapshot():
     def __init__(self,
         datetime,
         translation, rotation,
@@ -71,29 +71,31 @@ class Reader:
     def _gather_user_info(self):
         with self.path.open(mode='rb') as fp:
             self.user_id, usrn_len = \
-                self._deserialize(fp, format=_USER_INFO_FIRST_FORMAT)
-            self.username = self._deserialize(fp, size=usrn_len).decode()
+                self._read_file(fp, format=_USER_INFO_FIRST)
+            self.username = self._read_file(fp, size=usrn_len).decode()
             timestamp, gender_byte = \
-                self._deserialize(fp, format=_USER_INFO_SECOND_FORMAT)
+                self._read_file(fp, format=_USER_INFO_SECOND)
             self.birthdate = dt.datetime.fromtimestamp(timestamp)
             self.gender = gender_byte.decode()
 
     def _get_next_snapshot(self):
+        format = _TIMESTAMP+_TRANSLATION+\
+            _ROTATION+_IMAGE_DIMS
         with self.path.open(mode='rb') as fp:
             fp.seek(self._bytes_read)
-            (timestamp_ms, ) = self._deserialize(fp, format=_TIMESTAMP_FORMAT)
-            datetime = dt.datetime.fromtimestamp(timestamp_ms/1000.0)
-            translation = self._deserialize(fp, format=_TRANSLATION_FORMAT)
-            rotation = self._deserialize(fp, format=_ROTATION_FORMAT)
-            h, w = self._deserialize(fp, format=_IMAGE_DIMS_FORMAT)
-            color_image = \
-                self._create_image_from_file(w, h, fp, self._rgb_image_adder)
-            h, w = self._deserialize(fp, format=_IMAGE_DIMS_FORMAT)
+            timestamp_ms, t0, t1, t2, r0, r1, r2, r3, h, w = \
+                self._read_file(fp, format=format)
+            color_image = self._create_image_from_file(
+                w, h, fp, self._rgb_image_adder)
+            h, w = self._read_file(fp, format=_IMAGE_DIMS)
             depth_image = self._create_image_from_file(
-                w, h, fp, self._depth_image_adder, mode='F').convert('RGB')
+                w, h, fp, self._depth_image_adder, mode='F')
             hunger, thirst, exhaustion, happiness = \
-                self._deserialize(fp, format=_FEELINGS_FORMAT)
-        return Snapshot(datetime,
+                self._read_file(fp, format=_FEELINGS)
+        datetime = dt.datetime.fromtimestamp(timestamp_ms/1000.0)
+        translation = (t0, t1, t2)
+        rotation = (r0, r1, r2, r3)
+        return ReaderSnapshot(datetime,
         translation, rotation,
         color_image, depth_image,
         hunger, thirst, exhaustion, happiness)
@@ -103,7 +105,7 @@ class Reader:
         return Image.frombytes(mode, (width, height), img_data)
 
     def _rgb_image_adder(self, fp, size):
-        colors = bytearray(self._deserialize(fp, size=3*size))
+        colors = bytearray(self._read_file(fp, size=3*size))
         # rearrange image format from bgr to rgb
         for i in range(0, size*3, 3):
             colors[i:i+3] = colors[i:i+3][::-1]
@@ -111,10 +113,10 @@ class Reader:
 
     def _depth_image_adder(self, fp, size):
         float_size = struct.calcsize('f')
-        depth_values = self._deserialize(fp, size=size*float_size)
+        depth_values = self._read_file(fp, size=size*float_size)
         return depth_values
 
-    def _deserialize(self, fp, format=None, size=None):
+    def _read_file(self, fp, format=None, size=None):
         if format is None and size is None:
             raise Exception('No header format or size were given.')
         if format is not None and size is not None:
