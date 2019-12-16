@@ -1,6 +1,7 @@
 import click
 from .utils import Connection
 from .utils import is_address_valid
+from .utils import get_address_tuple
 from . import run_server
 from . import run_webserver
 from . import Reader
@@ -19,15 +20,44 @@ def main(**kwargs):
     pass
 
 
-@main.command(short_help='IP:PORT  DATA_DIR')
+@main.group()
+def server():
+    pass
+
+
+@main.group()
+def client():
+    pass
+
+
+@server.command(name='run', short_help='IP:PORT  DATA_DIR')
 @click.argument('address')
 @click.argument('data')
 def start_server(address, data):
     try:
         if not is_address_valid(address):
             raise ArgError
-        ip, port = address.split(':')
-        run_server((ip, int(port)), data)
+        address_tup = get_address_tuple(address)
+        run_server(address_tup, data)
+    except KeyboardInterrupt:
+        return
+    except ArgError:
+        print(f'ERROR: {ARG_FORMAT_ERROR}')
+    except Exception as error:
+        print(f'ERROR: {error}')
+        return 1
+
+
+@client.command(name='run', short_help='IP:PORT  FILE_ADDR')
+@click.argument('address')
+@click.argument('mindfile_addr')
+def upload(address, mindfile_addr):
+    try:
+        if not is_address_valid(address):
+            raise ArgError
+        address_tup = get_address_tuple(address)
+        with Reader(mindfile_addr) as reader:
+            upload_snapshot(address_tup, reader)
     except KeyboardInterrupt:
         return
     except ArgError:
@@ -44,8 +74,8 @@ def start_webserver(address, data):
     try:
         if not is_address_valid(address):
             raise ArgError
-        ip, port = address.split(':')
-        run_webserver((ip, int(port)), data)
+        address_tup = get_address_tuple(address)
+        run_webserver(address_tup, data)
     except KeyboardInterrupt:
         return
     except ArgError:
@@ -55,26 +85,7 @@ def start_webserver(address, data):
         return 1
 
 
-@main.command(short_help='IP:PORT  USER_ID  THOUGHT')
-@click.argument('address')
-@click.argument('mindfile_addr')
-def upload(address, mindfile_addr):
-    try:
-        if not is_address_valid(address):
-            raise ArgError
-        ip, port = address.split(':')
-        with Reader(mindfile_addr) as reader:
-            upload_snapshot((ip, int(port)), reader)
-    except KeyboardInterrupt:
-        return
-    except ArgError:
-        print(f'ERROR: {ARG_FORMAT_ERROR}')
-    except Exception as error:
-        print(f'ERROR: {error}')
-        return 1
-
-
-@main.command(short_help='PATH')
+@main.command(short_help='FILE_ADDR')
 @click.argument('path')
 def read(path):
     try:
