@@ -9,7 +9,7 @@ from . import upload_snapshot
 
 
 ARG_FORMAT_ERROR = 'arguments are not in the correct format.'
-
+_DEFAULT_ADDRESS = ('0.0.0.0', 8000)
 
 class ArgError(Exception):
     pass
@@ -31,13 +31,16 @@ def client():
 
 
 @server.command(name='run', short_help='IP:PORT  DATA_DIR')
-@click.argument('address')
+@click.option('-a', '--address')
 @click.argument('data')
 def start_server(address, data):
     try:
-        if not is_address_valid(address):
+        if address is None:
+            address_tup = _DEFAULT_ADDRESS
+        elif not is_address_valid(address):
             raise ArgError
-        address_tup = get_address_tuple(address)
+        else:
+            address_tup = get_address_tuple(address)
         run_server(address_tup, data)
     except KeyboardInterrupt:
         return
@@ -49,13 +52,16 @@ def start_server(address, data):
 
 
 @client.command(name='run', short_help='IP:PORT  FILE_ADDR')
-@click.argument('address')
+@click.option('-a', '--address')
 @click.argument('mindfile_addr')
 def upload(address, mindfile_addr):
     try:
-        if not is_address_valid(address):
+        if address is None:
+            address_tup = _DEFAULT_ADDRESS
+        elif not is_address_valid(address):
             raise ArgError
-        address_tup = get_address_tuple(address)
+        else:
+            address_tup = get_address_tuple(address)
         with Reader(mindfile_addr) as reader:
             upload_snapshot(address_tup, reader)
     except KeyboardInterrupt:
@@ -68,13 +74,16 @@ def upload(address, mindfile_addr):
 
 
 @main.command(short_help='IP:PORT  DATA_DIR')
-@click.argument('address')
+@click.option('-a', '--address')
 @click.argument('data')
 def start_webserver(address, data):
     try:
-        if not is_address_valid(address):
+        if address is None:
+            address_tup = _DEFAULT_ADDRESS
+        elif not is_address_valid(address):
             raise ArgError
-        address_tup = get_address_tuple(address)
+        else:
+            address_tup = get_address_tuple(address)
         run_webserver(address_tup, data)
     except KeyboardInterrupt:
         return
