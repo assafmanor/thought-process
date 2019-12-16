@@ -3,8 +3,8 @@ from .utils import Connection
 from .utils import is_address_valid
 from . import run_server
 from . import run_webserver
-from . import upload_thought
 from . import Reader
+from . import upload_snapshot
 
 
 ARG_FORMAT_ERROR = 'arguments are not in the correct format.'
@@ -57,18 +57,16 @@ def start_webserver(address, data):
 
 @main.command(short_help='IP:PORT  USER_ID  THOUGHT')
 @click.argument('address')
-@click.argument('user')
-@click.argument('thought')
-def upload(address, user, thought):
+@click.argument('mindfile_addr')
+def upload(address, mindfile_addr):
     try:
         if not is_address_valid(address):
             raise ArgError
-        if not user.isdigit():
-            raise ArgError
         ip, port = address.split(':')
-        with Connection.connect(ip, int(port)) as connection:
-            upload_thought(connection, int(user), thought)
-        print('done')
+        with Reader(mindfile_addr) as reader:
+            upload_snapshot((ip, int(port)), reader)
+    except KeyboardInterrupt:
+        return
     except ArgError:
         print(f'ERROR: {ARG_FORMAT_ERROR}')
     except Exception as error:

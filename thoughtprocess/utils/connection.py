@@ -33,15 +33,15 @@ to {server_ip}:{server_port}>'
     def send(self, data):
         self.socket.sendall(data)
 
-    def send_message(self, message_str):
-        msg_size = len(message_str)
+    def send_message(self, message_bytes):
+        msg_size = len(message_bytes)
         data = struct.pack(UINT32, msg_size)
-        data += message_str.encode()
+        data += message_bytes
         self.send(data)
         
     def receive_message(self):
         (msg_size, ) = struct.unpack(UINT32, self.receive(UINT32_SIZE))
-        return self.receive(msg_size).decode()
+        return self.receive(msg_size)
 
     def receive(self, size):
         data = bytearray()
@@ -50,7 +50,7 @@ to {server_ip}:{server_port}>'
             if not packet:
                 raise Exception(ERROR_MESSAGE)
             data.extend(packet)
-        return data
+        return bytes(data)
 
     def close(self):
         self.socket.close()
