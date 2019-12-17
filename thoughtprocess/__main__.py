@@ -1,15 +1,16 @@
 import click
-from .utils import Connection
-from .utils import is_address_valid
 from .utils import get_address_tuple
+from .utils import is_address_valid
+from . import Reader
 from . import run_server
 from . import run_webserver
-from . import Reader
 from . import upload_snapshot
 
 
 ARG_FORMAT_ERROR = 'arguments are not in the correct format.'
+
 _DEFAULT_ADDRESS = ('0.0.0.0', 8000)
+
 
 class ArgError(Exception):
     pass

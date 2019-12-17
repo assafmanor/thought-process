@@ -13,8 +13,8 @@ class Connection:
         self.socket = socket
 
     def __repr__(self):
-        server_ip, server_port = self.socket.getpeername()
-        client_ip, client_port = self.socket.getsockname()
+        server_ip, server_port = self.socket.getsockname()
+        client_ip, client_port = self.socket.getpeername()
         return f'<Connection from {client_ip}:{client_port} \
 to {server_ip}:{server_port}>'
 
@@ -38,7 +38,7 @@ to {server_ip}:{server_port}>'
         data = struct.pack(UINT32, msg_size)
         data += message_bytes
         self.send(data)
-        
+
     def receive_message(self):
         (msg_size, ) = struct.unpack(UINT32, self.receive(UINT32_SIZE))
         return self.receive(msg_size)

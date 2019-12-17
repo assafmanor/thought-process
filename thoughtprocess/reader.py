@@ -1,5 +1,4 @@
 import datetime as dt
-from PIL import Image
 import pathlib
 import struct
 
@@ -17,21 +16,21 @@ _ERROR_INVALID_FILE = 'file is corrupted.'
 
 class ReaderSnapshot:
     def __init__(self,
-        timestamp_ms,
-        translation, rotation,
-        color_image, depth_image,
-        feelings):
-            self.timestamp_ms = timestamp_ms
-            self.translation, self.rotation = translation, rotation
-            self.color_image, self.depth_image = color_image, depth_image
-            self.feelings = feelings
+                 timestamp_ms,
+                 translation, rotation,
+                 color_image, depth_image,
+                 feelings):
+        self.timestamp_ms = timestamp_ms
+        self.translation, self.rotation = translation, rotation
+        self.color_image, self.depth_image = color_image, depth_image
+        self.feelings = feelings
 
     def __str__(self):
         IMG_STR = '<Image: {type} {width}x{height}>'
         w, h = self.color_image[:2]
         cimg = IMG_STR.format(
             type="color",
-            width=w, 
+            width=w,
             height=h)
         w, h = self.depth_image[:2]
         datetime = dt.datetime.fromtimestamp(self.timestamp_ms/1000.0)
@@ -80,11 +79,11 @@ class Reader:
         self.gender = gender_byte.decode()
 
     def _get_next_snapshot(self):
-        format = _TIMESTAMP+_TRANSLATION+\
-            _ROTATION+_IMAGE_DIMS
+        format = _TIMESTAMP + _TRANSLATION + \
+            _ROTATION + _IMAGE_DIMS
         timestamp_ms, t_x, t_y, t_z, \
-        r_x, r_y, r_z, r_w, \
-        h, w = self._read_file(format=format)
+            r_x, r_y, r_z, r_w, \
+            h, w = self._read_file(format=format)
         color_img = self._create_image_tuple(w, h, self._rgb_image_reader)
         h, w = self._read_file(format=_IMAGE_DIMS)
         depth_img = self._create_image_tuple(w, h, self._depth_image_adder)
@@ -92,14 +91,13 @@ class Reader:
         translation = (t_x, t_y, t_z)
         rotation = (r_x, r_y, r_z, r_w)
         return ReaderSnapshot(timestamp_ms,
-                                translation, rotation,
-                                color_img, depth_img,
-                                feelings)
-    
+                              translation, rotation,
+                              color_img, depth_img,
+                              feelings)
+
     def _create_image_tuple(self, width, height, image_reader):
         image_data = image_reader(width*height)
         return (width, height, image_data)
-
 
     def _rgb_image_reader(self, size):
         colors = bytearray(self._read_file(size=3*size))

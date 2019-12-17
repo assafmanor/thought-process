@@ -9,11 +9,11 @@ _BDATE_GENDER_FORMAT = 'Ic'
 _SNAPSHOT_FIRST = 'Qddddddd'
 _IMAGE_DIMS = 'II'
 _FEELINGS = 'ffff'
-_ALLOWED_FIELDS = { 'translation',
-                    'rotation',
-                    'color_image',
-                    'depth_image',
-                    'feelings'}
+_ALLOWED_FIELDS = {'translation',
+                   'rotation',
+                   'color_image',
+                   'depth_image',
+                   'feelings'}
 
 
 class Hello:
@@ -69,7 +69,7 @@ Allowed fields are:\n{_ALLOWED_FIELDS}.')
             data.extend(struct.pack(_UINT32, len(field)))
             data.extend(field.encode())
         return bytes(data)
-    
+
     @classmethod
     def deserialize(cls, data):
         bytes_read = c_int64(0)  # a mutable integer
@@ -82,16 +82,16 @@ Allowed fields are:\n{_ALLOWED_FIELDS}.')
 
 class Snapshot:
     def __init__(self,
-        timestamp_ms,
-        translation=(0,0,0),
-        rotation=(0,0,0,0),
-        color_image=(0,0,None),
-        depth_image=(0,0,None),
-        feelings=(0,0,0,0)):
-            self.timestamp_ms = timestamp_ms
-            self.translation, self.rotation = translation, rotation
-            self.color_image, self.depth_image = color_image, depth_image
-            self.feelings = feelings
+                 timestamp_ms,
+                 translation=(0, 0, 0),
+                 rotation=(0, 0, 0, 0),
+                 color_image=(0, 0, None),
+                 depth_image=(0, 0, None),
+                 feelings=(0, 0, 0, 0)):
+        self.timestamp_ms = timestamp_ms
+        self.translation, self.rotation = translation, rotation
+        self.color_image, self.depth_image = color_image, depth_image
+        self.feelings = feelings
 
     def __str__(self):
         if '_cached_str' in self.__dict__:
@@ -132,11 +132,10 @@ hunger={hu}, thirst={th}, exhaustion={ex}, happiness={ha}"""
         w, h, img_data = self.depth_image
         data.extend(struct.pack(_IMAGE_DIMS, w, h))
         if w > 0 and h > 0:
-            #serialize depth image
             data.extend(img_data)
         data.extend(struct.pack(_FEELINGS, *self.feelings))
         return bytes(data)
-    
+
     @classmethod
     def deserialize(cls, data):
         bytes_read = c_int64(0)  # a mutable integer
@@ -151,16 +150,16 @@ hunger={hu}, thirst={th}, exhaustion={ex}, happiness={ha}"""
         translation = (t0, t1, t2)
         rotation = (r0, r1, r2, r3)
         return cls(timestamp_ms,
-                    translation, rotation,
-                    color_image, depth_image,
-                    feelings)
+                   translation, rotation,
+                   color_image, depth_image,
+                   feelings)
 
     @classmethod
     def from_reader_snapshot(cls, reader_snapshot, config):
         rs = reader_snapshot
         timestamp_ms = rs.timestamp_ms
-        kwargs = {name : val for name, val in rs.__dict__.items()
-                    if name in config.fields}
+        kwargs = {name: val for name, val in rs.__dict__.items()
+                  if name in config.fields}
         return cls(timestamp_ms=timestamp_ms, **kwargs)
 
 
@@ -194,7 +193,7 @@ def _read_data(data, bytes_read, format):
 
 def _read_bytes(data, bytes_read, size):
     try:
-        ret = data[bytes_read.value : bytes_read.value + size]
+        ret = data[bytes_read.value: bytes_read.value + size]
     except Exception as e:
         print(f'ERROR: {e}')
     bytes_read.value += size
@@ -204,7 +203,7 @@ def _read_bytes(data, bytes_read, size):
 def _read_str(data, bytes_read):
     (usrn_len, ) = _read_data(data, bytes_read, _UINT32)
     try:
-        ret_str = data[bytes_read.value : bytes_read.value+usrn_len].decode()
+        ret_str = data[bytes_read.value: bytes_read.value+usrn_len].decode()
     except Exception as e:
         print(f'ERROR: {e}')
     bytes_read.value += usrn_len

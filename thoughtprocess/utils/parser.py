@@ -2,8 +2,6 @@ import datetime as dt
 from PIL import Image
 import json
 import pathlib
-from .protocols import Hello
-from .protocols import Snapshot
 
 
 _TRANSLATION_FILE_NAME = 'translation.json'
@@ -14,14 +12,13 @@ _DATETIME_FILE_FORMAT = '%Y-%m-%d_%H-%M-%S-%f'
 class Parser:
     parsers = dict()
     data_dir = None
-    
+
     @staticmethod
     def add_parser(name):
         def decorator(cls):
             Parser.parsers[name] = cls.parse
             return cls
         return decorator
-
 
     @classmethod
     def parse(cls, hello, snapshot):
@@ -34,7 +31,9 @@ class TranslationParser(Parser):
     def parse(cls, hello, snapshot):
         x, y, z = snapshot.translation
         data = {'x': x, 'y': y, 'z': z}
-        sdir = _get_save_dir(cls.data_dir, hello.user_id, snapshot.timestamp_ms)
+        sdir = _get_save_dir(cls.data_dir,
+                             hello.user_id,
+                             snapshot.timestamp_ms)
         _create_dir(sdir)
         path = sdir / _TRANSLATION_FILE_NAME
         with path.open('w') as outfile:
@@ -45,12 +44,13 @@ class TranslationParser(Parser):
 class ColorImageParser(Parser):
     @classmethod
     def parse(cls, hello, snapshot):
-        sdir = _get_save_dir(cls.data_dir, hello.user_id, snapshot.timestamp_ms)
+        sdir = _get_save_dir(cls.data_dir,
+                             hello.user_id,
+                             snapshot.timestamp_ms)
         _create_dir(sdir)
         path = sdir / _COLOR_IMAGE_FILE_NAME
         image = _create_image_from_data(snapshot.color_image)
         image.save(path)
-
 
 
 def _get_save_dir(data_dir, user_id, timestamp_ms):

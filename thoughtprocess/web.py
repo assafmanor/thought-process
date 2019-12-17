@@ -1,5 +1,5 @@
-import pathlib
 from flask import Flask
+import pathlib
 
 app = Flask(__name__)
 

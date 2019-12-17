@@ -1,4 +1,3 @@
-import datetime as dt
 from .utils import Config
 from .utils import Connection
 from .utils import Hello
@@ -19,5 +18,3 @@ def upload_snapshot(address, reader):
                 Snapshot.from_reader_snapshot(rsnapshot, config).serialize())
         counter += 1
         print(f'Snapshot #{counter} sent.')
-        
-        
