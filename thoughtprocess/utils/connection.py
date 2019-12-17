@@ -13,10 +13,10 @@ class Connection:
         self.socket = socket
 
     def __repr__(self):
-        server_ip, server_port = self.socket.getsockname()
-        client_ip, client_port = self.socket.getpeername()
-        return f'<Connection from {client_ip}:{client_port} \
-to {server_ip}:{server_port}>'
+        ip, other_port = self.socket.getsockname()
+        _, peer_port = self.socket.getpeername()
+        return f'<Connection from {ip}:{other_port} \
+to {ip}:{peer_port}>'
 
     def __enter__(self):
         return self

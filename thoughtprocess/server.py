@@ -34,7 +34,7 @@ class ConnectionHandler(threading.Thread):
         with ConnectionHandler.parsing_lock:
             for parser in ConnectionHandler.parsers.values():
                 parser(hello, snapshot)
-        print(f'Snapshot received from {conn}.')
+        print(f'Snapshot received.')
 
 
 def run_server(address, data_dir):
