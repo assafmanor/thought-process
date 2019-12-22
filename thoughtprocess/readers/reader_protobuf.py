@@ -51,7 +51,7 @@ class ProtobufReader(AbstractReader):
                     pb_snapshot.feelings.thirst,
                     pb_snapshot.feelings.exhaustion,
                     pb_snapshot.feelings.happiness)
-        return Snapshot(datetime, 
+        return Snapshot(datetime,
                         translation,
                         rotation,
                         color_image,

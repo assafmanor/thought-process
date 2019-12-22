@@ -1,6 +1,5 @@
 import datetime as dt
 import pathlib
-import struct
 from .abstractreader import AbstractReader
 from .reader_registrator import ReaderRegistrator
 from ..utils import BinaryFile
@@ -20,12 +19,11 @@ class BinaryReader(AbstractReader):
     def __init__(self, path_str):
         self.path = pathlib.Path(path_str)
 
-
     def start(self):
         file = self.path.open(mode='rb')
         self.bin_file = BinaryFile(file)
         self._gather_user_info()
-    
+
     def stop(self):
         self.bin_file.close()
 
@@ -55,9 +53,10 @@ class BinaryReader(AbstractReader):
         translation = (t_x, t_y, t_z)
         rotation = (r_x, r_y, r_z, r_w)
         return Snapshot(timestamp_ms,
-                              translation, rotation,
-                              color_img, depth_img,
-                              feelings)
+                        translation, rotation,
+                        color_img, depth_img,
+                        feelings)
+
 
 def _create_image_tuple(bin_file, width, height, image_reader):
     image_data = image_reader(bin_file, width*height)
@@ -73,6 +72,4 @@ def _rgb_image_reader(bin_file, size):
 
 
 def _depth_image_adder(bin_file, size):
-    float_size = struct.calcsize('f')
-    depth_values = bin_file.read(size=size*float_size)
-    return bytes(depth_values)
+    return bin_file.read(format=f'{size}f')

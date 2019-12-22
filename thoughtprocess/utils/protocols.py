@@ -129,9 +129,10 @@ hunger={hu}, thirst={th}, exhaustion={ex}, happiness={ha}"""
         data.extend(struct.pack(_IMAGE_DIMS, w, h))
         if w > 0 and h > 0:
             data.extend(img_data)
-        w, h, img_data = self.depth_image
+        w, h, float_lst = self.depth_image
         data.extend(struct.pack(_IMAGE_DIMS, w, h))
         if w > 0 and h > 0:
+            img_data = struct.pack(f'{len(float_lst)}f', *float_lst)
             data.extend(img_data)
         data.extend(struct.pack(_FEELINGS, *self.feelings))
         return bytes(data)
@@ -155,10 +156,9 @@ hunger={hu}, thirst={th}, exhaustion={ex}, happiness={ha}"""
                    feelings)
 
     @classmethod
-    def from_reader_snapshot(cls, reader_snapshot, config):
-        rs = reader_snapshot
-        timestamp_ms = rs.timestamp_ms
-        kwargs = {name: val for name, val in rs.__dict__.items()
+    def from_snapshot_config(cls, snapshot, config):
+        timestamp_ms = snapshot.timestamp_ms
+        kwargs = {name: val for name, val in snapshot.__dict__.items()
                   if name in config.fields}
         return cls(timestamp_ms=timestamp_ms, **kwargs)
 

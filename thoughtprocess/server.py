@@ -1,12 +1,9 @@
 from .utils import Config
 from .utils import Hello
 from .utils import Listener
-from .utils import Parser
+from .parsers import ParserContext, ParserRegistrator
 from .utils import Snapshot
 import threading
-
-
-_CONFIG_FIELDS = {'translation', 'color_image'}
 
 
 class ConnectionHandler(threading.Thread):
@@ -25,23 +22,27 @@ class ConnectionHandler(threading.Thread):
     def set_parsers(cls, parsers):
         cls.parsers = parsers
 
+    @classmethod
+    def set_datadir(cls, data_dir):
+        cls.data_dir = data_dir
+
     def run(self):
         conn = self.connection
-        hello = Hello.deserialize(conn.receive_message())
-        config = Config(*_CONFIG_FIELDS)
+        user = Hello.deserialize(conn.receive_message())
+        config = Config(*ParserRegistrator.fields)
         conn.send_message(config.serialize())
         snapshot = Snapshot.deserialize(conn.receive_message())
+        data_dir = ConnectionHandler.data_dir
         with ConnectionHandler.parsing_lock:
-            for parser in ConnectionHandler.parsers.values():
-                parser(hello, snapshot)
-        print(f'Snapshot received.')
+            for parser in ConnectionHandler.parsers:
+                context = ParserContext(data_dir, user, snapshot)
+                parser(context)
+        print(f"Snapshot saved at \'{context.get_savepath('').absolute()}\'.")
 
 
 def run_server(address, data_dir):
-    parsers = {field: parser for field, parser in Parser.parsers.items()
-               if field in _CONFIG_FIELDS}
-    Parser.data_dir = data_dir
-    ConnectionHandler.set_parsers(parsers)
+    ConnectionHandler.set_datadir(data_dir)
+    ConnectionHandler.set_parsers(ParserRegistrator.parsers)
     host, port = address
     with Listener(port, host) as listener:
         while True:

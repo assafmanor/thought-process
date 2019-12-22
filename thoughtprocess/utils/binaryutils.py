@@ -5,6 +5,7 @@ import struct
 _UINT32 = 'I'
 _ERROR_INVALID_FILE = 'file is corrupted'
 
+
 class BinaryFile:
     def __init__(self, file):
         self.file = file

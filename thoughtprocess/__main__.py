@@ -36,9 +36,9 @@ def client():
     client.add_command(upload, name='run')
 
 
-@server.command(name='run', short_help=
-"[[IP:]PORT: default='localhost:8000']  DATA_DIR")
-@click.option('-a', '--address', default=_DEFAULT_ADDRESS)
+@server.command(name='run', short_help="<DATA_DIR>")
+@click.option('-a', '--address', default=_DEFAULT_ADDRESS,
+              metavar='', help='<IP:PORT> or <PORT>')
 @click.argument('data')
 def start_server(address, data):
     try:
@@ -56,12 +56,12 @@ def start_server(address, data):
         return 1
 
 
-@client.command(name='run', short_help=
-"[[IP:]PORT: default='localhost:8000']\
-FILE_ADDR  [READER_CLASS (binary / protobuf)]")
+@client.command(name='run', short_help="<FILE_ADDR>")
+@click.option('-a', '--address', default=_DEFAULT_ADDRESS,
+              metavar='', help='<IP:PORT> or <PORT>')
+@click.option('-r', '--reader-str', type=click.STRING, default='protobuf',
+              metavar='', help="'protobuf' or 'binary'")
 @click.argument('mindfile_path', type=click.Path(exists=True))
-@click.option('-a', '--address', default=_DEFAULT_ADDRESS)
-@click.option('-r' ,'--reader_str', type=click.STRING, default='protobuf')
 def upload(address, mindfile_path, reader_str):
     reader_str = reader_str.lower()
     if reader_str not in readers:
@@ -85,8 +85,9 @@ def upload(address, mindfile_path, reader_str):
         return 1
 
 
-@main.command(short_help="[[IP:]PORT: default='localhost:8000']  DATA_DIR")
-@click.option('-a', '--address', default=_DEFAULT_ADDRESS)
+@main.command(short_help="<DATA_DIR>")
+@click.option('-a', '--address', default=_DEFAULT_ADDRESS,
+              metavar='', help='<IP:PORT> or <PORT>')
 @click.argument('data')
 def start_webserver(address, data):
     try:
@@ -104,10 +105,10 @@ def start_webserver(address, data):
         return 1
 
 
-@main.command(short_help=
-'FILE_ADDR  [READER_CLASS (binary / protobuf): default=protobuf]')
+@main.command(short_help='<FILE_ADDR>')
+@click.option('-r', '--reader_str', type=click.STRING, default='protobuf',
+              metavar='', help="'protobuf' or 'binary'")
 @click.argument('path')
-@click.option('-r' ,'--reader_str', type=click.STRING, default='protobuf')
 def read(path, reader_str):
     reader_str = reader_str.lower()
     if reader_str not in readers:
