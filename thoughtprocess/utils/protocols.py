@@ -1,5 +1,5 @@
-from ctypes import c_int64
 import datetime as dt
+from .binaryutils import BinaryData
 import struct
 
 
@@ -42,11 +42,11 @@ gender={self.gender})"
 
     @classmethod
     def deserialize(cls, data):
-        bytes_read = c_int64(0)  # a mutable integer
-        (user_id, ) = _read_data(data, bytes_read, _UID_FORMAT)
-        username = _read_str(data, bytes_read)
+        bin_data = BinaryData(data)
+        (user_id, ) = bin_data.read_data(_UID_FORMAT)
+        username = bin_data.read_str()
         timestamp, gender_byte = \
-            _read_data(data, bytes_read, format=_BDATE_GENDER_FORMAT)
+            bin_data.read_data(_BDATE_GENDER_FORMAT)
         birthdate = dt.datetime.fromtimestamp(timestamp)
         gender = gender_byte.decode()
         return cls(user_id, username, birthdate, gender)
@@ -72,11 +72,11 @@ Allowed fields are:\n{_ALLOWED_FIELDS}.')
 
     @classmethod
     def deserialize(cls, data):
-        bytes_read = c_int64(0)  # a mutable integer
-        (num_fields, ) = _read_data(data, bytes_read, _UINT32)
+        bin_data = BinaryData(data)
+        (num_fields, ) = bin_data.read_data(_UINT32)
         fields = []
         for i in range(num_fields):
-            fields.append(_read_str(data, bytes_read))
+            fields.append(bin_data.read_str())
         return cls(*fields)
 
 
@@ -138,15 +138,15 @@ hunger={hu}, thirst={th}, exhaustion={ex}, happiness={ha}"""
 
     @classmethod
     def deserialize(cls, data):
-        bytes_read = c_int64(0)  # a mutable integer
+        bin_data = BinaryData(data)
         timestamp_ms, t0, t1, t2, r0, r1, r2, r3, w, h = \
-            _read_data(data, bytes_read, _SNAPSHOT_FIRST+_IMAGE_DIMS)
+            bin_data.read_data(_SNAPSHOT_FIRST+_IMAGE_DIMS)
         color_image = _create_image_tuple(
-            data, bytes_read, w, h, _rgb_image_reader)
-        w, h = _read_data(data, bytes_read, format=_IMAGE_DIMS)
+            bin_data, w, h, _rgb_image_reader)
+        w, h = bin_data.read_data(_IMAGE_DIMS)
         depth_image = _create_image_tuple(
-            data, bytes_read, w, h, _depth_image_reader)
-        feelings = _read_data(data, bytes_read, _FEELINGS)
+            bin_data, w, h, _depth_image_reader)
+        feelings = bin_data.read_data(_FEELINGS)
         translation = (t0, t1, t2)
         rotation = (r0, r1, r2, r3)
         return cls(timestamp_ms,
@@ -163,48 +163,19 @@ hunger={hu}, thirst={th}, exhaustion={ex}, happiness={ha}"""
         return cls(timestamp_ms=timestamp_ms, **kwargs)
 
 
-def _create_image_tuple(data, bytes_read, width, height, image_reader):
+def _create_image_tuple(bin_data, width, height, image_reader):
     image_data = None
     if width > 0 and height > 0:
-        image_data = image_reader(data, bytes_read, width*height)
+        image_data = image_reader(bin_data, width*height)
     return (width, height, image_data)
 
 
-def _rgb_image_reader(data, bytes_read, size):
+def _rgb_image_reader(bin_data, size):
     # read width*height*3 bytes - for each r,g,b value
-    return _read_bytes(data, bytes_read, 3*size)
+    return bin_data.read_bytes(3*size)
 
 
-def _depth_image_reader(data, bytes_read, size):
+def _depth_image_reader(bin_data, size):
     float_size = struct.calcsize('f')
-    depth_values = _read_bytes(data, bytes_read, size*float_size)
+    depth_values = bin_data.read_bytes(size*float_size)
     return depth_values
-
-
-def _read_data(data, bytes_read, format):
-    size = struct.calcsize(format)
-    try:
-        ret = struct.unpack_from(format, data, offset=bytes_read.value)
-    except Exception as e:
-        print(f'ERROR: {e}')
-    bytes_read.value += size
-    return ret
-
-
-def _read_bytes(data, bytes_read, size):
-    try:
-        ret = data[bytes_read.value: bytes_read.value + size]
-    except Exception as e:
-        print(f'ERROR: {e}')
-    bytes_read.value += size
-    return ret
-
-
-def _read_str(data, bytes_read):
-    (usrn_len, ) = _read_data(data, bytes_read, _UINT32)
-    try:
-        ret_str = data[bytes_read.value: bytes_read.value+usrn_len].decode()
-    except Exception as e:
-        print(f'ERROR: {e}')
-    bytes_read.value += usrn_len
-    return ret_str

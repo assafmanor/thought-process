@@ -1,15 +1,20 @@
 import click
-from .utils import get_address_tuple
-from .utils import is_address_valid
 from . import Reader
 from . import run_server
 from . import run_webserver
 from . import upload_snapshot
+from .readers import ReaderRegistrator
+from .utils import get_address_tuple, is_address_valid
 
 
 ARG_FORMAT_ERROR = 'arguments are not in the correct format.'
+INVALID_READER_CLASS_ERROR = 'Invalid reader class.\nValid types: {readers}'
 
-_DEFAULT_ADDRESS = ('0.0.0.0', 8000)
+
+_DEFAULT_ADDRESS = '0.0.0.0:8000'
+
+
+readers = ReaderRegistrator.readers
 
 
 class ArgError(Exception):
@@ -28,17 +33,16 @@ def server():
 
 @main.group()
 def client():
-    pass
+    client.add_command(upload, name='run')
 
 
-@server.command(name='run', short_help='IP:PORT  DATA_DIR')
-@click.option('-a', '--address')
+@server.command(name='run', short_help=
+"[[IP:]PORT: default='localhost:8000']  DATA_DIR")
+@click.option('-a', '--address', default=_DEFAULT_ADDRESS)
 @click.argument('data')
 def start_server(address, data):
     try:
-        if address is None:
-            address_tup = _DEFAULT_ADDRESS
-        elif not is_address_valid(address):
+        if not is_address_valid(address):
             raise ArgError
         else:
             address_tup = get_address_tuple(address)
@@ -52,18 +56,25 @@ def start_server(address, data):
         return 1
 
 
-@client.command(name='run', short_help='IP:PORT  FILE_ADDR')
-@click.option('-a', '--address')
-@click.argument('mindfile_addr')
-def upload(address, mindfile_addr):
+@client.command(name='run', short_help=
+"[[IP:]PORT: default='localhost:8000']\
+FILE_ADDR  [READER_CLASS (binary / protobuf)]")
+@click.argument('mindfile_path', type=click.Path(exists=True))
+@click.option('-a', '--address', default=_DEFAULT_ADDRESS)
+@click.option('-r' ,'--reader_str', type=click.STRING, default='protobuf')
+def upload(address, mindfile_path, reader_str):
+    reader_str = reader_str.lower()
+    if reader_str not in readers:
+        error_msg = INVALID_READER_CLASS_ERROR.format(readers=tuple(readers))
+        print(f'ERROR: {error_msg}')
+        return 1
+    reader_cls = readers[reader_str]
     try:
-        if address is None:
-            address_tup = _DEFAULT_ADDRESS
-        elif not is_address_valid(address):
+        if not is_address_valid(address):
             raise ArgError
         else:
             address_tup = get_address_tuple(address)
-        with Reader(mindfile_addr) as reader:
+        with Reader(mindfile_path, reader_cls) as reader:
             upload_snapshot(address_tup, reader)
     except KeyboardInterrupt:
         return
@@ -74,14 +85,12 @@ def upload(address, mindfile_addr):
         return 1
 
 
-@main.command(short_help='IP:PORT  DATA_DIR')
-@click.option('-a', '--address')
+@main.command(short_help="[[IP:]PORT: default='localhost:8000']  DATA_DIR")
+@click.option('-a', '--address', default=_DEFAULT_ADDRESS)
 @click.argument('data')
 def start_webserver(address, data):
     try:
-        if address is None:
-            address_tup = _DEFAULT_ADDRESS
-        elif not is_address_valid(address):
+        if not is_address_valid(address):
             raise ArgError
         else:
             address_tup = get_address_tuple(address)
@@ -95,11 +104,19 @@ def start_webserver(address, data):
         return 1
 
 
-@main.command(short_help='FILE_ADDR')
+@main.command(short_help=
+'FILE_ADDR  [READER_CLASS (binary / protobuf): default=protobuf]')
 @click.argument('path')
-def read(path):
+@click.option('-r' ,'--reader_str', type=click.STRING, default='protobuf')
+def read(path, reader_str):
+    reader_str = reader_str.lower()
+    if reader_str not in readers:
+        print(f'ERROR: \
+              {INVALID_READER_CLASS_ERROR.format(readers=tuple(readers))}')
+        return 1
+    reader_cls = readers[reader_str]
     try:
-        with Reader(path) as reader:
+        with Reader(path, reader_cls) as reader:
             for snapshot in reader:
                 print(f'{snapshot}\n')
     except KeyboardInterrupt:

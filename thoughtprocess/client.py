@@ -5,8 +5,7 @@ from .utils import Snapshot
 
 
 def upload_snapshot(address, reader):
-    hello = Hello(
-        reader.user_id, reader.username, reader.birthdate, reader.gender)
+    hello = reader.get_info()
     hello_ser = hello.serialize()
     host, port = address
     counter = 0

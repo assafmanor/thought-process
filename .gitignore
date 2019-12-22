@@ -1,5 +1,7 @@
 .env/
 .git
+cortex.proto
 data
 thoughtprocess/.vscode/
 sample.mind
+sample.mind.gz
