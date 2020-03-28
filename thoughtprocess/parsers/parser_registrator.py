@@ -1,30 +1,16 @@
-import inspect
 import importlib
 import pathlib
 
 
-_TRANSLATION_FILE_NAME = 'translation.json'
-_COLOR_IMAGE_FILE_NAME = 'color_image.jpg'
-_DATETIME_FILE_FORMAT = '%Y-%m-%d_%H-%M-%S-%f'
-
-
 class ParserRegistrator:
-    parsers = set()
-    fields = set()
+    parsers = {}
 
     @classmethod
-    def register(cls, *names):
-        cls.fields.update(names)
-
-        def decorator(obj):
-            if inspect.isclass(obj):
-                parser = obj.parse
-            elif inspect.isfunction(obj):
-                parser = obj
-            else:
-                raise ValueError
-            cls.parsers.add(parser)
-            return obj
+    def register(cls, name):
+        def decorator(parser_cls):
+            cls.parsers[name] = parser_cls
+            parser_cls.publish_name = name
+            return parser_cls
         return decorator
 
     @staticmethod
@@ -38,5 +24,19 @@ class ParserRegistrator:
                 package = f'{root.parent.name}.{root.name}'
                 importlib.import_module(f'.{path.stem}', package=package)
 
-
-ParserRegistrator.load_parsers()
+    '''
+    @staticmethod
+    def load_parser(name):
+        cur_module = pathlib.Path(__file__)
+        root = cur_module.parent
+        desired_module_name = 'parser_' + name
+        if desired_module_name == cur_module.stem:
+            raise NameError(f"cannot name parser '{name}'")
+        for path in root.iterdir():
+            if path.stem == desired_module_name:
+                package = f'{root.parent.name}.{root.name}'
+                importlib.import_module(f'.{path.stem}', package=package)
+                return
+        else:
+            raise ModuleNotFoundError(f"no parsers called '{name}' were found")
+    '''

@@ -1,19 +1,26 @@
 import matplotlib.pyplot as plt
 import matplotlib.cm as cm
 from PIL import Image
+import pathlib
 
-from .abstractparser import AbstractParser, ParserContext
+from .abstractparser import AbstractParser
 from .parser_registrator import ParserRegistrator
 
 
 _DEPTH_IMAGE_FILENAME = 'depth_image.jpg'
 
 
-@ParserRegistrator.register('depth_image',)
+@ParserRegistrator.register('depth_image')
 class DepthImageParser(AbstractParser):
-    @staticmethod
-    def parse(context: ParserContext):
-        width, height, data = context.snapshot.depth_image
-        path = context.get_savepath(_DEPTH_IMAGE_FILENAME)
-        image = Image.frombytes('F', (width, height), data)
-        plt.imsave(path, image, cmap=cm.RdYlGn)
+    @classmethod
+    def parse(cls, data):
+        metadata = cls.get_metadata(data)
+        width, height, path_str = data['depth_image']
+        path = pathlib.Path(path_str)
+        savepath = path.parent / _DEPTH_IMAGE_FILENAME
+        with path.open('rb') as f:
+            img_bytes = f.read()
+        image = Image.frombytes('F', (width, height), img_bytes)
+        plt.imsave(savepath, image, cmap=cm.RdYlGn)
+        return {**metadata,
+                'depth_image': str(savepath)}

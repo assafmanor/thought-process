@@ -1,5 +1,3 @@
-from .abstractparser import ParserContext
-from .parser_registrator import ParserRegistrator
+from .utils import run_parser
 
-
-__all__ = ['ParserContext', 'ParserRegistrator']
+__all__ = ['run_parser']

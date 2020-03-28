@@ -1,8 +1,7 @@
 import click
-from . import Reader
 from . import run_server
 from . import run_webserver
-from . import upload_snapshot
+#from .client import upload_snapshot
 from .readers import ReaderRegistrator
 from .utils import get_address_tuple, is_address_valid
 
@@ -55,7 +54,7 @@ def start_server(address, data):
         print(f'ERROR: {error}')
         return 1
 
-
+'''
 @client.command(name='run', short_help="<FILE_ADDR>")
 @click.option('-a', '--address', default=_DEFAULT_ADDRESS,
               metavar='', help='<IP:PORT> or <PORT>')
@@ -83,7 +82,7 @@ def upload(address, mindfile_path, reader_str):
     except Exception as error:
         print(f'ERROR: {error}')
         return 1
-
+'''
 
 @main.command(short_help="<DATA_DIR>")
 @click.option('-a', '--address', default=_DEFAULT_ADDRESS,
@@ -105,6 +104,7 @@ def start_webserver(address, data):
         return 1
 
 
+'''
 @main.command(short_help='<FILE_ADDR>')
 @click.option('-r', '--reader_str', type=click.STRING, default='protobuf',
               metavar='', help="'protobuf' or 'binary'")
@@ -125,7 +125,7 @@ def read(path, reader_str):
     except Exception as error:
         print(f'ERROR: {error}')
         return 1
-
+'''
 
 if __name__ == '__main__':
     main(prog_name='thoughtprocess')

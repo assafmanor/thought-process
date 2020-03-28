@@ -1,4 +1,4 @@
-class Reader:
+class Cognition:
     def __init__(self, path, reader_cls):
         self.reader = reader_cls(path)
 

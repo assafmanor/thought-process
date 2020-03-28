@@ -1,37 +1,53 @@
 import datetime as dt
+import json
 import pathlib
 
-
-_DATETIME_FILE_FORMAT = '%Y-%m-%d_%H-%M-%S-%f'
-
-
-class ParserContext:
-    def __init__(self, data_dir, user, snapshot):
-        self.data_dir = data_dir
-        self.user = user
-        self.snapshot = snapshot
-
-    def get_savepath(self, filename):
-        sdir = _get_save_dir(self.data_dir,
-                             self.user.user_id,
-                             self.snapshot.timestamp_ms)
-        _create_dir(sdir)
-        path = sdir / filename
-        return path
+from ..message_queues import get_exchange_name
+from ..message_queues import MessageQueueRegistrator as MQHandler
 
 
 class AbstractParser:
-    @staticmethod
-    def parse(context: ParserContext):
+
+    mq = None
+    consumed_name = None
+    publish_name = None
+
+    @classmethod
+    def parse(cls, data: dict):
         raise NotImplementedError
 
+    @classmethod
+    def get_metadata(cls, data: dict):
+        return {'parser_name': cls.publish_name,
+                'user_id': data['user_id'],
+                'birthdate': data['birthdate'],
+                'gender': data['gender'],
+                'timestamp': data['timestamp']}
 
-def _get_save_dir(data_dir, user_id, timestamp_ms):
-    datetime = dt.datetime.fromtimestamp(timestamp_ms/1000.0)
-    # show only four digits in microseconds
-    dt_format = datetime.strftime(_DATETIME_FILE_FORMAT)[:-2]
-    return pathlib.Path(data_dir) / str(user_id) / dt_format
+    @classmethod
+    def init_mq(cls, url):
+        MQHandler.load_mqs()
+        cls.mq = MQHandler.get_mq(url)
+        cls._init_consumed_exchange(url)
+        cls._init_publish_queue()
 
+    @classmethod
+    def _init_consumed_exchange(cls, url):
+        cls.consumed_name = get_exchange_name('server_exchange')
+        cls.mq.declare_exchange(cls.consumed_name)
+        cls.mq.consume_exchange(cls.consumed_name, cls._callback)
 
-def _create_dir(dir_path):
-    dir_path.mkdir(parents=True, exist_ok=True)
+    @classmethod
+    def _init_publish_queue(cls):
+        cls.mq.declare_queue(cls.publish_name)
+    
+    @classmethod
+    def _callback(cls, data_json):
+        print(f">> Received data from exchange '{cls.consumed_name}'.")
+        print('>> Parsing data...')
+        data = json.loads(data_json)
+        parsed_data = cls.parse(data)
+        cls.mq.publish(json.dumps(parsed_data),
+                       queue_name=cls.publish_name)
+        print(f">> Done!\n>> Published results to queue '{cls.publish_name}'.")
+        print(f'>> Parsed data: {parsed_data}')
