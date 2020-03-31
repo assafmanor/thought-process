@@ -3,8 +3,6 @@ import importlib
 import pathlib
 
 
-
-
 class MessageQueueRegistrator:
     mqs = {}
 

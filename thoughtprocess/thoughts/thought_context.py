@@ -3,7 +3,7 @@ import json
 import pathlib
 
 
-_RESULTS_PATH = '/tmp/thoughtprocess/data/images/'
+_RESULTS_PATH = './.data/images'
 _DATETIME_FILE_FORMAT = '%Y-%m-%d_%H-%M-%S-%f'
 _COLOR_IMAGE_FILENAME = 'color_image.bin'
 _DEPTH_IMAGE_FILENAME = 'depth_image.bin'

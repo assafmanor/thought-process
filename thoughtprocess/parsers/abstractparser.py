@@ -20,6 +20,7 @@ class AbstractParser:
     def get_metadata(cls, data: dict):
         return {'parser_name': cls.publish_name,
                 'user_id': data['user_id'],
+                'username': data['username'],
                 'birthdate': data['birthdate'],
                 'gender': data['gender'],
                 'timestamp': data['timestamp']}
