@@ -1,2 +1,4 @@
 DEFAULT_IP = '127.0.0.1'
-DEFAULT_PORT = 8000
+DEFAULT_SERVER_PORT = 8000
+DEFAULT_API_PORT = 5000
+DEFAULT_DB_URL = 'postgresql://postgres:password@127.0.0.1:5432/postgres'

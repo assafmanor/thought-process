@@ -5,8 +5,9 @@ import threading
 from .saver import Saver
 from ..databases import DBConnectionError
 from ..message_queues import MessageQueueRegistrator as MQHandler
+from ..utils.cli_utils import DEFAULT_DB_URL
 
-_DEFAULT_DB_URL = 'postgresql://postgres:password@127.0.0.1:5432/postgres'
+
 _PARSER_NAMES = {'color_image', 'depth_image', 'feelings', 'pose'}
 
 
@@ -16,7 +17,7 @@ def cli(**kwargs):
 
 
 @cli.command(name='save')
-@click.option('-d', '--database', default=_DEFAULT_DB_URL, type=click.STRING)
+@click.option('-d', '--database', default=DEFAULT_DB_URL, type=click.STRING)
 @click.argument('parser_name', type=click.STRING)
 @click.argument('data_file', type=click.File('r'))
 def cli_save(database, parser_name, data_file):
@@ -31,14 +32,12 @@ def cli_save(database, parser_name, data_file):
     print(f">> '{parser_name}' data from '{data_file.name}'", end=' ')
     print('was successfully saved to database.')
 
-    
-
 
 @cli.command(name='run-saver')
-@click.argument('db_url', type=click.STRING)
+@click.option('-d', '--database', default=DEFAULT_DB_URL, type=click.STRING)
 @click.argument('mq_url', type=click.STRING)
-def cli_run_saver(db_url, mq_url):
-    saver = _init_saver(db_url)
+def cli_run_saver(database, mq_url):
+    saver = _init_saver(database)
     if saver is None:
         return
     mq = _init_mq(mq_url)
@@ -47,6 +46,7 @@ def cli_run_saver(db_url, mq_url):
         _subscribe_to_queue(mq, saver, queue_name)
     mq.start_consuming()
     print('>> Waiting for data...')
+
 
 def _init_saver(url):
     try:
@@ -60,9 +60,11 @@ def _init_saver(url):
     print('>> Connected to database.')
     return saver
 
+
 def _init_mq(url):
     MQHandler.load_mqs()
     return MQHandler.get_mq(url)
+
 
 def _subscribe_to_queue(mq, saver, name):
     mq.declare_queue(name)

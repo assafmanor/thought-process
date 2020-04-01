@@ -15,5 +15,8 @@ class AbstractMQ:
     def consume_exchange(self, name, callback):
         raise NotImplementedError
 
+    def start_consuming(self):
+        raise NotImplementedError
+
     def publish(self, message, exchange_name, queue_name):
         raise NotImplementedError

@@ -4,7 +4,7 @@ import pathlib
 import sys
 from .server import run_server
 from ..utils.cli_utils import DEFAULT_IP
-from ..utils.cli_utils import DEFAULT_PORT
+from ..utils.cli_utils import DEFAULT_SERVER_PORT
 from ..message_queues import get_exchange_name
 from ..message_queues import MessageQueueRegistrator as MQHandler
 
@@ -16,7 +16,7 @@ def cli(**kwargs):
 
 @cli.command(name='run-server')
 @click.option('-h', '--host', default=DEFAULT_IP, type=click.STRING)
-@click.option('-p', '--port', default=DEFAULT_PORT, type=click.INT)
+@click.option('-p', '--port', default=DEFAULT_SERVER_PORT, type=click.INT)
 @click.argument('url', type=click.STRING)
 def cli_run_server(host, port, url):
     callback = lambda message: _callback(url, message)

@@ -122,7 +122,9 @@ class PostgresDB(AbstractDB):
             user_id=user_id)
         ret = []
         for snapshot in snapshots:
-            ret.append(_object_as_dict(snapshot))
+            data = {'snapshot_id': snapshot.id,
+                    'timestamp': snapshot.timestamp}
+            ret.append(data)
         return ret
 
     def get_snapshot(self, user_id, snapshot_id):
@@ -136,12 +138,16 @@ class PostgresDB(AbstractDB):
         snapshot = self.get_snapshot(user_id, snapshot_id)
         if snapshot is None:
             return None
-        return getattr(snapshot, result_name)
+        if result_name not in snapshot:
+            return None
+        return snapshot[result_name]
 
     def _is_user_in_db(self, user_id):
         return self.session.query(self.Users).get(user_id) is not None
 
 
 def _object_as_dict(obj):
-        return {c.key: getattr(obj, c.key)
+    if obj is None:
+        return None
+    return {c.key: getattr(obj, c.key)
         for c in sqla.inspect(obj).mapper.column_attrs}

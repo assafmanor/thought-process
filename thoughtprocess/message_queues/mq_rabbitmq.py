@@ -29,9 +29,6 @@ class RabbitMQ(AbstractMQ):
                                    auto_ack=True,
                                    on_message_callback=valid_callback)
 
-    def start_consuming(self):
-        self.channel.start_consuming()
-
     def consume_exchange(self, name, callback):
         result = self.channel.queue_declare(queue='', exclusive=True)
         queue_name = result.method.queue
@@ -39,6 +36,9 @@ class RabbitMQ(AbstractMQ):
                                 queue=queue_name)
         self.consume_queue(queue_name, callback)
         self.start_consuming()
+
+    def start_consuming(self):
+        self.channel.start_consuming()
 
     def publish(self, message, exchange_name='', queue_name=''):
         self.channel.basic_publish(exchange=exchange_name,
