@@ -41,7 +41,7 @@ class AbstractParser:
     @classmethod
     def _init_publish_queue(cls):
         cls.mq.declare_queue(cls.publish_name)
-    
+
     @classmethod
     def _callback(cls, data_json):
         print(f">> Received data from exchange '{cls.consumed_name}'.")

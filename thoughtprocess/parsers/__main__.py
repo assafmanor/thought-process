@@ -12,24 +12,19 @@ def cli(**kwargs):
 
 @cli.command(name='parse')
 @click.argument('parser_name', type=click.STRING)
-@click.argument('data_path', type=click.STRING)
-def cli_parse(parser_name, data_path):
-    path = pathlib.Path(data_path)
-    if not path.is_file():
-        print(f'File error: invalid path was provided.')
+@click.argument('data_file', type=click.File('r'))
+def cli_parse(parser_name, data_file):
+    try:
+        data = json.loads(data_file.read())
+    except ValueError:
+        print(f'Value error: invalid file format.')
         return 1
-    with open(data_path, 'r') as f:
-        try:
-            data = json.loads(f.read())
-        except ValueError:
-            print(f'Value error: invalid file format.')
-            return 1
     try:
         parsed_result = run_parser(parser_name, data)
     except NameError as e:
         print(f'Name error: {e}.')
         return 1
-    print(f"Parsed {parser_name} from '{data_path}'.")
+    print(f"Parsed {parser_name} from '{data_file.name}'.")
     print(f'Parsing result:\n{parsed_result}')
 
 

@@ -1,15 +1,14 @@
 import datetime as dt
-import json
 import sqlalchemy as sqla
 from sqlalchemy import Column, DateTime, ForeignKey, \
     Float, Integer, JSON, String, Sequence, Table
-from sqlalchemy.dialects import postgresql
 from sqlalchemy.ext.declarative import declarative_base
 from sqlalchemy_utils import database_exists
 
 from .abstractdb import AbstractDB
 from .db_registrator import DatabaseRegistrator
 from .exceptions import DBConnectionError
+
 
 @DatabaseRegistrator.register('postgresql')
 class PostgresDB(AbstractDB):
@@ -35,8 +34,7 @@ class PostgresDB(AbstractDB):
         id = Column('id', Integer, Sequence('snapshot_id_seq'), primary_key=True)
         user_id = Column('user_id', ForeignKey('users.id'))
         timestamp = Column('timestamp', DateTime)
-        translation = Column('translation', JSON)
-        rotation = Column('rotation', JSON)
+        pose = Column('pose', JSON)
         feelings = Column('feelings', JSON)
         color_image = Column('color_image', String) # path
         depth_image = Column('depth_image', String) # path
@@ -44,21 +42,28 @@ class PostgresDB(AbstractDB):
         def __repr__(self):
             repr = f'Snapshot(id: {self.id}, user_id: {self.user_id}, '
             repr += f'timestamp: {self.timestamp}, '
-            repr += f'translation: {self.translation}, '
-            repr += f'rotation: {self.rotation}, '
+            repr += f'pose: {self.translation}, '
             repr += f'feelings: {self.feelings}, '
             repr += f'color_image: {self.color_image}, '
             repr += f'depth_image: {self.depth_image})'
             return repr
 
-    def __init__(self, engine, connection):
-        self.engine = engine
-        self.conn = connection
-        self.session = sqla.orm.sessionmaker(bind=engine)()
-        PostgresDB.Base.metadata.create_all(engine)
+    def __init__(self, url, create_tables=False):
+        self.engine, self.conn = self.connect(url)
+        self.session = sqla.orm.sessionmaker(bind=self.engine)()
+        if create_tables:
+            self._create_tables()
 
-    @classmethod
-    def connect(cls, url):
+    def __enter__(self):
+        return self
+
+    def __exit__(self, exc_type, exc_val, exc_tb):
+        self.conn.close()
+
+    def _create_tables(self):
+        PostgresDB.Base.metadata.create_all(self.engine)
+
+    def connect(self, url):
         engine = sqla.create_engine(url)
         try:
             db_exists = database_exists(engine.url)
@@ -67,15 +72,13 @@ class PostgresDB(AbstractDB):
         if not db_exists:
             raise DBConnectionError(f'cannot connect to specified database')
         conn = engine.connect()
-        return cls(engine, conn)
+        return engine, conn
 
     def save_data(self, req_data_name, data: dict):
         user_id = data['user_id']
         self.save_user(data)
         timestamp = dt.datetime.fromtimestamp(data['timestamp']/1000)
         new_data = data[req_data_name]
-        if isinstance(new_data, list):
-            new_data = json.dumps(new_data)
         row = self.session.query(self.Snapshots).filter_by(
             user_id=user_id, timestamp=timestamp).first()
         if row is not None: # snapshot already in db
@@ -107,19 +110,19 @@ class PostgresDB(AbstractDB):
         users = self.session.query(self.Users).all()
         ret = []
         for user in users:
-            ret.append(user)
+            ret.append(_object_as_dict(user))
         return ret
 
     def get_user(self, user_id):
         user = self.session.query(self.Users).get(user_id)
-        return user
+        return _object_as_dict(user)
 
     def get_user_snapshots(self, user_id):
         snapshots = self.session.query(self.Snapshots).filter_by(
             user_id=user_id)
         ret = []
         for snapshot in snapshots:
-            ret.append(snapshot)
+            ret.append(_object_as_dict(snapshot))
         return ret
 
     def get_snapshot(self, user_id, snapshot_id):
@@ -127,7 +130,7 @@ class PostgresDB(AbstractDB):
             id=snapshot_id,
             user_id=user_id
         ).first()
-        return snapshot
+        return _object_as_dict(snapshot)
 
     def get_data(self, user_id, snapshot_id, result_name):
         snapshot = self.get_snapshot(user_id, snapshot_id)

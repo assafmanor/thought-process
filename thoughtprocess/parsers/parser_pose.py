@@ -7,6 +7,7 @@ class PoseParser(AbstractParser):
     @classmethod
     def parse(cls, data):
         metadata = cls.get_metadata(data)
-        return {**metadata,
-                'translation': data['translation'],
+        pose = {'translation': data['translation'],
                 'rotation': data['rotation']}
+        return {**metadata,
+                'pose': pose}

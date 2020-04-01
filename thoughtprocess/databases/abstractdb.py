@@ -1,9 +1,17 @@
 class AbstractDB:
-    @classmethod
-    def connect(cls, url):
+    def __init__(self, url, create_tables=False):
         raise NotImplementedError
 
-    def save_data(self, parser_name, data: dict):
+    def __enter__(self):
+        raise NotImplementedError
+
+    def __exit__(self, exc_type, exc_val, exc_tb):
+        raise NotImplementedError
+
+    def connect(self, url):
+        raise NotImplementedError
+
+    def save_data(self, req_data_name, data: dict):
         raise NotImplementedError
 
     def save_user(self, data: dict):

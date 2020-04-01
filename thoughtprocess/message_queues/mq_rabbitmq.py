@@ -28,6 +28,8 @@ class RabbitMQ(AbstractMQ):
         self.channel.basic_consume(queue=name,
                                    auto_ack=True,
                                    on_message_callback=valid_callback)
+
+    def start_consuming(self):
         self.channel.start_consuming()
 
     def consume_exchange(self, name, callback):
@@ -36,6 +38,7 @@ class RabbitMQ(AbstractMQ):
         self.channel.queue_bind(exchange=name,
                                 queue=queue_name)
         self.consume_queue(queue_name, callback)
+        self.start_consuming()
 
     def publish(self, message, exchange_name='', queue_name=''):
         self.channel.basic_publish(exchange=exchange_name,
