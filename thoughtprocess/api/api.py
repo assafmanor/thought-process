@@ -6,6 +6,13 @@ app.url_map.strict_slashes = False
 api = Api(app)
 
 
+NO_USERS_MSG = 'no users yet'
+USER_NOT_FOUND_MSG = 'user {user_id} was not found'
+USER_NO_SNAPSHOTS_MSG = 'user {user_id} has no snapshots'
+SNAPSHOT_NOT_FOUND_MSG = 'snapshot {snapshot_id} was not found for user {user_id}'
+NO_RESULTS_MSG = "no '{result_name}' data was found for snapshot {snapshot_id}"
+NO_DATA_MSG = 'no data to display'
+
 class RestfulApi:
     db = None
     
@@ -18,6 +25,8 @@ class RestfulApi:
         def get(self):
             db = _get_db()
             users = db.get_users()
+            if not users:
+                abort(404, message=NO_USERS_MSG)
             for user in users:
                 _jsonify_user(user)
             return users
@@ -27,13 +36,23 @@ class RestfulApi:
             db = _get_db()
             user = db.get_user(user_id)
             if not user:
-                abort(404, message=f'user {user_id} was not found.')
+                message = USER_NOT_FOUND_MSG.format(user_id=user_id)
+                abort(404, message=message)
             return _jsonify_user(user)
 
     class UserSnapshots(Resource):
         def get(self, user_id):
             db = _get_db()
+            user = db.get_user(user_id)
+            print(user)
+            print(not user)
+            if not user:
+                message = USER_NOT_FOUND_MSG.format(user_id=user_id)
+                abort(404, message=message)
             snapshots = db.get_user_snapshots(user_id)
+            if not snapshots:
+                message = USER_NO_SNAPSHOTS_MSG.format(user_id=user_id)
+                abort(404, message=message)
             for snapshot in snapshots:
                 _jsonify_snapshot(snapshot)
             return snapshots
@@ -42,47 +61,64 @@ class RestfulApi:
         def get(self, user_id, snapshot_id):
             db = _get_db()
             user = db.get_user(user_id)
-            if user is None:
-                abort(404, message=f'user {user_id} was not found.')
+            if not user:
+                message = USER_NOT_FOUND_MSG.format(user_id=user_id)
+                abort(404, message=message)
             snapshot = db.get_snapshot(user_id, snapshot_id)
-            if snapshot is None:
-                abort(404, message=f'snapshot {snapshot_id} was not found')
+            if not snapshot:
+                message = SNAPSHOT_NOT_FOUND_MSG.format(
+                    snapshot_id=snapshot_id,
+                    user_id=user_id)
+                abort(404, message=message)
             return _jsonify_snapshot(snapshot)
 
     class Result(Resource):
         def get(self, user_id, snapshot_id, result_name):
             db = _get_db()
             user = db.get_user(user_id)
-            if user is None:
-                abort(404, message=f'user {user_id} was not found.')
+            if not user:
+                message = USER_NOT_FOUND_MSG.format(user_id=user_id)
+                abort(404, message=message)
             snapshot = db.get_snapshot(user_id, snapshot_id)
-            if snapshot is None:
-                abort(404, message=f'snapshot {snapshot_id} was not found')
+            if not snapshot:
+                message = SNAPSHOT_NOT_FOUND_MSG.format(
+                    snapshot_id=snapshot_id,
+                    user_id=user_id)
+                abort(404, message=message)
             result = db.get_data(user_id, snapshot_id, result_name)
-            if result is None:
-                abort(404, message=f'found no results')
+            if not result:
+                message = NO_RESULTS_MSG.format(
+                    result_name=result_name,
+                    snapshot_id=snapshot_id)
+                abort(404, message=message)
             return result
 
     class Data(Resource):
         def get(self, user_id, snapshot_id, result_name):
             if result_name not in ['color_image', 'depth_image']:
-                abort(404, message='no data to display')
+                abort(404, message=NO_DATA_MSG)
             db = _get_db()
             user = db.get_user(user_id)
-            if user is None:
-                abort(404, message=f'user {user_id} was not found.')
+            if not user:
+                message = USER_NOT_FOUND_MSG.format(user_id=user_id)
+                abort(404, message=message)
             snapshot = db.get_snapshot(user_id, snapshot_id)
-            if snapshot is None:
-                abort(404, message=f'snapshot {snapshot_id} was not found')
+            if not snapshot:
+                message = SNAPSHOT_NOT_FOUND_MSG.format(
+                    snapshot_id=snapshot_id,
+                    user_id=user_id)
+                abort(404, message=message)
             result = db.get_data(user_id, snapshot_id, result_name)
-            if result is None:
-                abort(404, message=f'found no results')
+            if not result:
+                message = NO_RESULTS_MSG.format(
+                    result_name=result_name,
+                    snapshot_id=snapshot_id)
+                abort(404, message=message)
             with open(result, 'rb') as f:
                 image_binary = f.read()
             response = make_response(image_binary)            
             response.headers.set('Content-Type', 'image/jpeg')
             return response
-            
 
 
 api.add_resource(
@@ -113,9 +149,11 @@ api.add_resource(
 def _get_db():
     return RestfulApi.db
 
+
 def _jsonify_user(user):
     user['birthdate'] = user['birthdate'].__str__()
     return user
+
 
 def _jsonify_snapshot(snapshot):
     snapshot['timestamp'] = snapshot['timestamp'].__str__()
