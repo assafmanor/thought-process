@@ -1,4 +1,4 @@
-from flask import Flask
+from flask import Flask, make_response
 from flask_restful import abort, Api, Resource
 
 app = Flask(__name__)
@@ -63,6 +63,27 @@ class RestfulApi:
                 abort(404, message=f'found no results')
             return result
 
+    class Data(Resource):
+        def get(self, user_id, snapshot_id, result_name):
+            if result_name not in ['color_image', 'depth_image']:
+                abort(404, message='no data to display')
+            db = _get_db()
+            user = db.get_user(user_id)
+            if user is None:
+                abort(404, message=f'user {user_id} was not found.')
+            snapshot = db.get_snapshot(user_id, snapshot_id)
+            if snapshot is None:
+                abort(404, message=f'snapshot {snapshot_id} was not found')
+            result = db.get_data(user_id, snapshot_id, result_name)
+            if result is None:
+                abort(404, message=f'found no results')
+            with open(result, 'rb') as f:
+                image_binary = f.read()
+            response = make_response(image_binary)            
+            response.headers.set('Content-Type', 'image/jpeg')
+            return response
+            
+
 
 api.add_resource(
     RestfulApi.Users,
@@ -83,6 +104,10 @@ api.add_resource(
 api.add_resource(
     RestfulApi.Result,
     '/users/<int:user_id>/snapshots/<int:snapshot_id>/<result_name>')
+
+api.add_resource(
+    RestfulApi.Data,
+    '/users/<int:user_id>/snapshots/<int:snapshot_id>/<result_name>/data')
 
 
 def _get_db():

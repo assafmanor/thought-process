@@ -19,7 +19,7 @@ def upload_sample(host, port, path, reader_cls=ProtobufReader):
                         Snapshot.from_snapshot_config(snapshot, config).serialize())
                 count += 1
                 print(f'Snapshot #{count} sent.')
-        print('Done .')
+        print('Done.')
     except KeyboardInterrupt:
         return
     except Exception as error:
