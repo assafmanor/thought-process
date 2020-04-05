@@ -7,7 +7,7 @@ from sqlalchemy_utils import database_exists
 
 from .abstractdb import AbstractDB
 from .db_registrator import DatabaseRegistrator
-from .exceptions import DBConnectionError
+from .exceptions import DBConnectionError, UserInfoError
 
 
 @DatabaseRegistrator.register('postgresql')
@@ -76,7 +76,11 @@ class PostgresDB(AbstractDB):
 
     def save_data(self, req_data_name, data: dict):
         user_id = data['user_id']
-        self.save_user(data)
+        if self._is_user_in_db(user_id):
+            if not self._is_user_info_valid(data):
+                raise UserInfoError(f'wrong user info for user id {user_id}')
+        else:
+            self.save_user(data)
         timestamp = dt.datetime.fromtimestamp(data['timestamp']/1000)
         new_data = data[req_data_name]
         row = self.session.query(self.Snapshots).filter_by(
@@ -94,8 +98,6 @@ class PostgresDB(AbstractDB):
 
     def save_user(self, data: dict):
         user_id = data['user_id']
-        if self._is_user_in_db(user_id):
-            return
         name = data['username']
         gender = data['gender']
         birthdate = dt.datetime.fromtimestamp(data['birthdate'])
@@ -144,6 +146,16 @@ class PostgresDB(AbstractDB):
 
     def _is_user_in_db(self, user_id):
         return self.session.query(self.Users).get(user_id) is not None
+
+    def _is_user_info_valid(self, data: dict):
+        user_id = data['user_id']
+        name = data['username']
+        gender = data['gender']
+        birthdate = dt.datetime.fromtimestamp(data['birthdate'])
+        user = self.get_user(user_id)
+        return name == user['name'] and \
+               gender == user['gender'] and \
+               birthdate == user['birthdate']
 
 
 def _object_as_dict(obj):

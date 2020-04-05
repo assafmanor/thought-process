@@ -3,7 +3,7 @@ import json
 import threading
 
 from .saver import Saver
-from ..databases import DBConnectionError
+from ..databases import DBConnectionError, UserInfoError
 from ..message_queues import MessageQueueRegistrator as MQHandler
 from ..utils.cli_utils import DEFAULT_DB_URL
 
@@ -28,9 +28,12 @@ def cli_save(database, parser_name, data_file):
     if saver is None:
         return
     data = json.loads(data_file.read())
-    saver.save(parser_name, data)
-    print(f">> '{parser_name}' data from '{data_file.name}'", end=' ')
-    print('was successfully saved to database.')
+    try:
+        saver.save(parser_name, data)
+        print(f">> '{parser_name}' data from '{data_file.name}'", end=' ')
+        print('was successfully saved to database.')
+    except UserInfoError as e:
+        print(f'User info error: {e}.')
 
 
 @cli.command(name='run-saver')
@@ -76,8 +79,11 @@ def _callback(saver, parser_name, data_json):
     print(f">> Received '{parser_name}' data from queue.")
     print('>> Saving data in database...')
     data = json.loads(data_json)
-    saver.save(parser_name, data)
-    print('>> Done!')
+    try:
+        saver.save(parser_name, data)
+        print('>> Done!')
+    except UserInfoError as e:
+        print(f'User info error: {e}.')
 
 
 if __name__ == '__main__':

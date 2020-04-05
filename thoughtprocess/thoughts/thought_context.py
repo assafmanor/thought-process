@@ -23,12 +23,10 @@ class ThoughtContext:
         dt_format = datetime.strftime(_DATETIME_FILE_FORMAT)[:-2]
         return pathlib.Path(_RESULTS_PATH) / str(user_id) / dt_format
 
-
     def get_savepath(self, filename):
         sdir = self.get_savedir()
         path = sdir / filename
         return path
-
 
     def get_json(self):
         user = self.user
