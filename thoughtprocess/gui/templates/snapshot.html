@@ -1,0 +1,164 @@
+{% extends 'base.html' %}
+{% block title %}Snapshot {{ snapshot['id'] }}{% endblock %}
+{% block basic %}
+    <h1 class="text-primary" align="center">Snapshot</h1>
+    <h3 align="center">Info</h3>
+    <table class="table">
+        <thead class="thead-dark">
+            <tr>
+                <th scope="col">#</th>
+                <th scope="col">Uploaded by</th>
+                <th scope="col">Date</th>
+                <th scope="col">Time</th>
+            </tr>
+        </thead>
+        <tbody>
+            <tr>
+                <th scope="row">{{ snapshot['id'] }}</th>
+                <td>
+                    <a href="user?id={{ snapshot['user_id'] }}">
+                        {{ username }}
+                    </a>
+                </td>
+                <td>{{ snapshot['timestamp'].strftime('%d %b %Y') }}</td>
+                <td>{{ snapshot['timestamp'].strftime('%H:%M:%S.%f')[:-3] }}</td>
+            </tr>
+        </tbody>
+    </table>
+
+    <h3 align="center">Data</h3>
+    <table class="table">
+        <tbody>
+            <tr>
+                <th scope="row">Feelings</th>
+                <td style ="word-break:break-all;">
+                    {% if snapshot['feelings'] %}
+                    <div class="container">
+                        <table class="table table-borderless">
+                            <tr>
+                                <th scope="row" class="w-50">Hunger</th>
+                                <td class="w-50">
+                                    {{ "%.2f" % (snapshot['feelings'][0]*100) }}%
+                                </td>
+                            </tr>
+                            <tr>
+                                <th scope="row" class="w-50">Thirst</th>
+                                <td class="w-50">
+                                    {{ "%.2f" % (snapshot['feelings'][1]*100) }}%
+                                </td>
+                            </tr>
+                            <tr>
+                                <th scope="row" class="w-50">Exhaustion</th>
+                                <td class="w-50">
+                                    {{ "%.2f" % (snapshot['feelings'][2]*100) }}%
+                                </td>
+                            </tr>
+                            <tr>
+                                <th scope="row" class="w-50">Happiness</th>
+                                <td class="w-50">
+                                    {{ "%.2f" % (snapshot['feelings'][3]*100) }}%
+                                </td>
+                            </tr>
+                        </table>
+                    </div>
+                    {% else %}
+                        No data
+                    {% endif %}
+                </td>
+            </tr>
+            <tr>
+                <th scope="row" class="w-25">Translation</th>
+                <td class="w-75">
+                    {% if snapshot['pose'] %}
+                        <div class="container">
+                            <table class="table table-borderless">
+                                <tr>
+                                    <th scope="row" class="w-50">x</th>
+                                    <td class="w-50">
+                                        {{ snapshot['pose']['translation'][0] }}
+                                    </td>
+                                </tr>
+                                <tr>
+                                    <th scope="row" class="w-50">y</th>
+                                    <td class="w-50">
+                                        {{ snapshot['pose']['translation'][1] }}
+                                    </td>
+                                </tr>
+                                <tr>
+                                    <th scope="row" class="w-50">z</th>
+                                    <td class="w-50">
+                                        {{ snapshot['pose']['translation'][2] }}
+                                    </td>
+                                </tr>
+                            </table>
+                        </div>
+                    {% else %}
+                        No data
+                    {% endif %}
+                </td>
+            </tr>
+            <tr>
+                <th scope="row" class="w-25">Rotation</th>
+                <td class="w-75">
+                    {% if snapshot['pose'] %}
+                        <div class="container">
+                            <table class="table table-borderless">
+                                <tr>
+                                    <th scope="row" class="w-50">x</th>
+                                    <td class="w-50">
+                                        {{ snapshot['pose']['rotation'][0] }}
+                                    </td>
+                                </tr>
+                                <tr>
+                                    <th scope="row" class="w-50">y</th>
+                                    <td class="w-50">
+                                        {{ snapshot['pose']['rotation'][1] }}
+                                    </td>
+                                </tr>
+                                <tr>
+                                    <th scope="row" class="w-50">z</th>
+                                    <td class="w-50">
+                                        {{ snapshot['pose']['rotation'][2] }}
+                                    </td>
+                                </tr>
+                                <tr>
+                                    <th scope="row" class="w-50">w</th>
+                                    <td class="w-50">
+                                        {{ snapshot['pose']['rotation'][3] }}
+                                    </td>
+                                </tr>
+                            </table>
+                        </div>
+                    {% else %}
+                        No data
+                    {% endif %}
+                </td>
+            </tr>
+            <tr>
+                <th scope="row" class="w-25">Color Image</th>
+                <td class="w-75">
+                    {% if snapshot['color_image'] %}
+                    <a href="{{ snapshot['color_image'] }}">
+                        <img src="{{ snapshot['color_image'] }}" alt="color image" class="img-thumbnail">
+                    </a>
+                    
+                    {% else %}
+                        No data
+                    {% endif %}
+                </td>
+            </tr>
+            <tr>
+                <th scope="row" class="w-25">Depth Image</th>
+                <td class="w-75">
+                    {% if snapshot['depth_image'] %}
+                    <a href="{{ snapshot['depth_image'] }}">
+                        <img src="{{ snapshot['depth_image'] }}" alt="depth image" class="img-thumbnail">
+                    </a>
+                    {% else %}
+                        No data
+                    {% endif %}
+                </td>
+            </tr>
+        </tbody>
+    </table>
+{% endblock %}

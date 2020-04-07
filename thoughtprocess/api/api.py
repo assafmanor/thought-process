@@ -1,5 +1,6 @@
 from flask import Flask, make_response
 from flask_restful import abort, Api, Resource
+import json
 
 app = Flask(__name__)
 app.url_map.strict_slashes = False
@@ -44,8 +45,6 @@ class RestfulApi:
         def get(self, user_id):
             db = _get_db()
             user = db.get_user(user_id)
-            print(user)
-            print(not user)
             if not user:
                 message = USER_NOT_FOUND_MSG.format(user_id=user_id)
                 abort(404, message=message)
@@ -70,7 +69,12 @@ class RestfulApi:
                     snapshot_id=snapshot_id,
                     user_id=user_id)
                 abort(404, message=message)
-            return _jsonify_snapshot(snapshot)
+            snapshot_dict = _jsonify_snapshot(snapshot)
+            if snapshot_dict['pose']:
+                snapshot_dict['pose'] = json.loads(snapshot_dict['pose'])
+            if snapshot_dict['feelings']:
+                snapshot_dict['feelings'] = json.loads(snapshot_dict['feelings'])
+            return snapshot_dict
 
     class Result(Resource):
         def get(self, user_id, snapshot_id, result_name):

@@ -1,0 +1,26 @@
+{% extends 'base.html' %}
+{% block title %}Search{% endblock %}
+{% block head %}
+    <script src="https://kit.fontawesome.com/005d4d84d3.js" crossorigin="anonymous"></script>
+{% endblock %}
+{% block navsearch %} active{% endblock %}
+{% block content %}
+    <center>
+        {% if user_id %}
+            <h1 class="text-primary">Search results</h1>
+            <h5>Sorry, we couldn't find any users with ID {{ user_id }}.</h5>
+        {% else %}
+            <h1 class="text-primary">Search</h1>
+            <p>Search user by ID</p>
+        {% endif %}
+    </center>
+    <table class="table table-borderless">
+        <tr>
+            <td class="w-75">
+                <input type="number" min="1" id="mySearch" class="form-control" placeholder="Search">
+            </td>
+            <td class="w-25"><i class="fas fa-search fa-2x"></i></td>
+        </tr>
+    </table>
+    <script type="text/javascript" src="{{ url_for('static', filename='js/search_user.js') }}"></script>
+{% endblock %}
