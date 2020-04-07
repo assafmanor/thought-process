@@ -50,6 +50,7 @@ def create_app(api_url):
         snapshots = snapshot_request.json()
         user_request = requests.get(user_url)
         user = user_request.json()
+        _fix_timestamp(user, 'birthdate', BIRTHDATE_STR_FORMAT)
         for snapshot in snapshots:
             _fix_timestamp(snapshot, 'timestamp', DATETIME_STR_FORMAT)
         snapshots.sort(key=lambda k: k['timestamp'])
