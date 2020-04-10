@@ -1,4 +1,5 @@
 import click
+import sys
 
 from .run_api_server import run_api_server
 from ..databases import DBConnectionError
@@ -20,10 +21,10 @@ def cli_run_api_server(host, port, database):
         run_api_server(host, port, database)
     except KeyError as e:
         print(f'Key error: {e}.')
-        return
+        sys.exit(1)
     except DBConnectionError as e:
         print(f'DB connection error: {e}.')
-        return None
+        sys.exit(1)
 
 
 if __name__ == '__main__':

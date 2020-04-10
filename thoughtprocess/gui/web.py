@@ -28,10 +28,13 @@ def create_app(api_url):
     def users():
         users_url = f'{api_url}/users'
         r = requests.get(users_url)
-        users = r.json()
-        for user in users:
-            _fix_timestamp(user, 'birthdate', BIRTHDATE_STR_FORMAT)
-        users.sort(key=lambda k: k['id'])
+        if r.status_code == 404:
+            users = None
+        else:
+            users = r.json()
+            for user in users:
+                _fix_timestamp(user, 'birthdate', BIRTHDATE_STR_FORMAT)
+            users.sort(key=lambda k: k['id'])
         return render_template("users.html",
             users=users)
 
@@ -71,6 +74,7 @@ def create_app(api_url):
             abort(404, message)
         snapshot = req.json()
         _fix_timestamp(snapshot, 'timestamp', DATETIME_STR_FORMAT)
+        snapshot_url = snapshot_url.replace('api', 'localhost')
         if snapshot['color_image']:
             snapshot['color_image'] = f'{snapshot_url}/color_image/data'
         if snapshot['depth_image']:

@@ -1,0 +1,2 @@
+class MQConnectionError(Exception):
+    pass

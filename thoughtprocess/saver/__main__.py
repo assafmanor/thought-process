@@ -1,10 +1,12 @@
 import click
 import json
+import sys
 import threading
 
 from .saver import Saver
 from ..databases import DBConnectionError, UserInfoError
 from ..message_queues import MessageQueueRegistrator as MQHandler
+from ..message_queues import MQConnectionError
 from ..utils.cli_utils import DEFAULT_DB_URL
 
 
@@ -23,10 +25,10 @@ def cli(**kwargs):
 def cli_save(database, parser_name, data_file):
     if parser_name not in _PARSER_NAMES:
         print(f"Parser error: parser '{parser_name}' was not found.")
-        return
+        sys.exit(1)
     saver = _init_saver(database)
     if saver is None:
-        return
+        sys.exit(1)
     data = json.loads(data_file.read())
     try:
         saver.save(parser_name, data)
@@ -42,8 +44,12 @@ def cli_save(database, parser_name, data_file):
 def cli_run_saver(database, mq_url):
     saver = _init_saver(database)
     if saver is None:
-        return
-    mq = _init_mq(mq_url)
+        sys.exit(1)
+    try:
+        mq = _init_mq(mq_url)
+    except MQConnectionError as e:
+        print(f'MQ connection error: {e}.')
+        sys.exit(1)
     for queue_name in _PARSER_NAMES:
         print(f">> Subscribing to queue '{queue_name}'")
         _subscribe_to_queue(mq, saver, queue_name)
@@ -56,10 +62,10 @@ def _init_saver(url):
         saver = Saver(url)
     except KeyError as e:
         print(f'Key error: {e}.')
-        return None
+        sys.exit(1)
     except DBConnectionError as e:
         print(f'DB connection error: {e}.')
-        return None
+        sys.exit(1)
     print('>> Connected to database.')
     return saver
 

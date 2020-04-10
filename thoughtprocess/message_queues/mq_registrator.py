@@ -2,6 +2,7 @@ from furl import furl
 import importlib
 import pathlib
 
+from .exceptions import MQConnectionError
 
 class MessageQueueRegistrator:
     mqs = {}
@@ -38,3 +39,4 @@ class MessageQueueRegistrator:
         host = f.host
         port = f.port
         return mq_class.connect(host, port)
+        

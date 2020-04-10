@@ -1,0 +1,147 @@
+version: '3.7'
+
+services:
+
+    api:
+        build: "./thoughtprocess/api"
+        volumes:
+            - my-volume:/usr/src/thoughtprocess
+        command: "/bin/sh -c 'cd /usr/src/thoughtprocess \
+        && python -m thoughtprocess.api run-server -h 0.0.0.0 \
+        -d postgresql://postgres:password@db:5432/postgres'"
+        networks:
+            - my-local
+        ports:
+            - 5000:5000
+        depends_on:
+            - db
+        restart: on-failure
+
+    db:
+        image: postgres
+        restart: always
+        networks:
+            - my-local
+        ports:
+            - 5432:5432
+        volumes:
+            - my-volume:/var/lib/postgresql
+        environment:
+            POSTGRES_DB: postgres
+            POSTGRES_USER: postgres
+            POSTGRES_PASSWORD: password
+
+    gui:
+        build: ./thoughtprocess/gui
+        volumes:
+            - my-volume:/usr/src/thoughtprocess
+        command: "/bin/sh -c 'cd /usr/src/thoughtprocess \
+        && python -m thoughtprocess.gui run-server -h 0.0.0.0 -H api'"
+        networks:
+            - my-local
+        ports:
+            - 8080:8080
+        depends_on:
+            - api
+        restart: on-failure  
+
+    mq:
+        image: rabbitmq
+        networks:
+            - my-local
+        ports:
+            - "4369:4369"
+            - "5671:5671"
+            - "5672:5672"
+            - "25672:25672"
+            - "15671:15671"
+            - "15672:15672"        
+        healthcheck:
+            test: ["CMD", "curl", "-f", "http://localhost:5672"]
+            interval: 30s
+            timeout: 10s
+            retries: 10
+
+
+    parser-color-image:
+        build: ./thoughtprocess/parsers
+        networks:
+            - my-local
+        volumes:
+            - my-volume:/usr/src/thoughtprocess
+        command: "/bin/sh -c 'cd /usr/src/thoughtprocess \
+        && python -m thoughtprocess.parsers run-parser color_image rabbitmq://mq:5672'"
+        depends_on:
+            - mq
+        restart: on-failure
+    
+    parser-depth-image:
+        build: ./thoughtprocess/parsers
+        networks:
+            - my-local
+        volumes:
+            - my-volume:/usr/src/thoughtprocess
+        command: "/bin/sh -c 'cd /usr/src/thoughtprocess \
+            && python -m thoughtprocess.parsers run-parser depth_image rabbitmq://mq:5672'"
+        depends_on:
+            - mq
+        restart: on-failure
+    
+    parser-feelings:
+        build: ./thoughtprocess/parsers
+        networks:
+            - my-local
+        volumes:
+            - my-volume:/usr/src/thoughtprocess
+        command: "/bin/sh -c 'cd /usr/src/thoughtprocess \
+            && python -m thoughtprocess.parsers run-parser feelings rabbitmq://mq:5672'"
+        depends_on:
+            - mq
+        restart: on-failure
+
+    parser-pose:
+        build: ./thoughtprocess/parsers
+        networks:
+            - my-local
+        volumes:
+            - my-volume:/usr/src/thoughtprocess
+        command: "/bin/sh -c 'cd /usr/src/thoughtprocess \
+            && python -m thoughtprocess.parsers run-parser pose rabbitmq://mq:5672'"
+        depends_on:
+            - mq
+        restart: on-failure
+
+    saver:
+        build: ./thoughtprocess/saver
+        networks:
+            - my-local
+        volumes:
+            - my-volume:/usr/src/thoughtprocess
+        command: "/bin/sh -c 'cd /usr/src/thoughtprocess \
+        && python -m thoughtprocess.saver run-saver rabbitmq://mq:5672 \
+        -d postgresql://postgres:password@db:5432/postgres'"
+        depends_on:
+            - db
+            - mq
+        restart: on-failure
+    
+    server:
+        build: ./thoughtprocess/server
+        networks:
+            - my-local
+        ports: 
+            - 8000:8000
+        volumes:
+            - my-volume:/usr/src/thoughtprocess
+        command:
+            "/bin/sh -c 'cd /usr/src/thoughtprocess \
+            && python -m thoughtprocess.server run-server -h 0.0.0.0 rabbitmq://mq:5672'"
+        depends_on:
+            - mq
+        restart: on-failure
+
+networks:
+    my-local:
+
+volumes:
+    my-volume:

@@ -4,7 +4,7 @@ import struct
 UINT32 = 'I'
 UINT32_SIZE = struct.calcsize(UINT32)
 
-ERROR_MESSAGE = "ERROR: Couldn't receive data from client successfully."
+ERROR_MESSAGE = "couldn't receive data from client successfully"
 
 
 class Connection:

@@ -1,6 +1,7 @@
 import pika
 from .abstractmq import AbstractMQ
 from .mq_registrator import MessageQueueRegistrator
+from .exceptions import MQConnectionError
 
 
 @MessageQueueRegistrator.register('rabbitmq')
@@ -11,8 +12,11 @@ class RabbitMQ(AbstractMQ):
 
     @classmethod
     def connect(cls, host, port):
-        connection = pika.BlockingConnection(
-            pika.ConnectionParameters(host, port))
+        try:
+            connection = pika.BlockingConnection(
+                pika.ConnectionParameters(host, port))
+        except pika.exceptions.AMQPConnectionError as e:
+            raise MQConnectionError(e.__str__())
         channel = connection.channel()
         return cls(connection, channel)
 
