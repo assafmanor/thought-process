@@ -2,6 +2,13 @@ version: '3.7'
 
 services:
 
+    files:
+      build: ./thoughtprocess
+      volumes:
+        - my-volume:/usr/src/thoughtprocess
+      networks:
+        - my-local  
+
     api:
         build: "./thoughtprocess/api"
         volumes:
@@ -15,6 +22,7 @@ services:
             - 5000:5000
         depends_on:
             - db
+            - files
         restart: on-failure
 
     db:
@@ -43,6 +51,7 @@ services:
             - 8080:8080
         depends_on:
             - api
+            - files
         restart: on-failure  
 
     mq:
@@ -72,9 +81,10 @@ services:
         command: "/bin/sh -c 'cd /usr/src/thoughtprocess \
         && python -m thoughtprocess.parsers run-parser color_image rabbitmq://mq:5672'"
         depends_on:
+            - files
             - mq
         restart: on-failure
-    
+
     parser-depth-image:
         build: ./thoughtprocess/parsers
         networks:
@@ -84,9 +94,10 @@ services:
         command: "/bin/sh -c 'cd /usr/src/thoughtprocess \
             && python -m thoughtprocess.parsers run-parser depth_image rabbitmq://mq:5672'"
         depends_on:
+            - files
             - mq
         restart: on-failure
-    
+
     parser-feelings:
         build: ./thoughtprocess/parsers
         networks:
@@ -96,6 +107,7 @@ services:
         command: "/bin/sh -c 'cd /usr/src/thoughtprocess \
             && python -m thoughtprocess.parsers run-parser feelings rabbitmq://mq:5672'"
         depends_on:
+            - files
             - mq
         restart: on-failure
 
@@ -108,6 +120,7 @@ services:
         command: "/bin/sh -c 'cd /usr/src/thoughtprocess \
             && python -m thoughtprocess.parsers run-parser pose rabbitmq://mq:5672'"
         depends_on:
+            - files
             - mq
         restart: on-failure
 
@@ -121,10 +134,11 @@ services:
         && python -m thoughtprocess.saver run-saver rabbitmq://mq:5672 \
         -d postgresql://postgres:password@db:5432/postgres'"
         depends_on:
+            - files
             - db
             - mq
         restart: on-failure
-    
+
     server:
         build: ./thoughtprocess/server
         networks:
@@ -137,6 +151,7 @@ services:
             "/bin/sh -c 'cd /usr/src/thoughtprocess \
             && python -m thoughtprocess.server run-server -h 0.0.0.0 rabbitmq://mq:5672'"
         depends_on:
+            - files
             - mq
         restart: on-failure
 

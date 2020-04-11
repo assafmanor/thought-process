@@ -10,7 +10,6 @@ function main {
     .env/bin/pip install -U pip
     .env/bin/pip install -r requirements.txt
     docker build -t base .
-    docker build -t thoughtprocess ./thoughtprocess
 }
 
 
