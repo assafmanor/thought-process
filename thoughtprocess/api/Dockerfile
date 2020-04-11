@@ -1,3 +1,3 @@
-FROM thoughtprocess:latest
+FROM base:latest
 EXPOSE 5000
 

@@ -48,7 +48,7 @@ to {ip}:{peer_port}>'
         while len(data) < size:
             packet = self.socket.recv(size - len(data))
             if not packet:
-                raise Exception(ERROR_MESSAGE)
+                raise ConnectionAbortedError(ERROR_MESSAGE)
             data.extend(packet)
         return bytes(data)
 

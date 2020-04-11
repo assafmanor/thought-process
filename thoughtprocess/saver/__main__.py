@@ -24,7 +24,7 @@ def cli(**kwargs):
 @click.argument('data_file', type=click.File('r'))
 def cli_save(database, parser_name, data_file):
     if parser_name not in _PARSER_NAMES:
-        print(f"Parser error: parser '{parser_name}' was not found.")
+        print(f"Parser error: parser '{parser_name}' was not found.", file=sys.stderr)
         sys.exit(1)
     saver = _init_saver(database)
     if saver is None:
@@ -35,7 +35,8 @@ def cli_save(database, parser_name, data_file):
         print(f">> '{parser_name}' data from '{data_file.name}'", end=' ')
         print('was successfully saved to database.')
     except UserInfoError as e:
-        print(f'User info error: {e}.')
+        print(f'User info error: {e}.', file=sys.stderr)
+        sys.exit(1)
 
 
 @cli.command(name='run-saver')
@@ -44,11 +45,12 @@ def cli_save(database, parser_name, data_file):
 def cli_run_saver(database, mq_url):
     saver = _init_saver(database)
     if saver is None:
+        print("Error: saver could not be initialized", file=sys.stderr)
         sys.exit(1)
     try:
         mq = _init_mq(mq_url)
     except MQConnectionError as e:
-        print(f'MQ connection error: {e}.')
+        print(f'MQ connection error: {e}.', file=sys.stderr)
         sys.exit(1)
     for queue_name in _PARSER_NAMES:
         print(f">> Subscribing to queue '{queue_name}'")
@@ -61,10 +63,10 @@ def _init_saver(url):
     try:
         saver = Saver(url)
     except KeyError as e:
-        print(f'Key error: {e}.')
+        print(f'Key error: {e}.', file=sys.stderr)
         sys.exit(1)
     except DBConnectionError as e:
-        print(f'DB connection error: {e}.')
+        print(f'DB connection error: {e}.', file=sys.stderr)
         sys.exit(1)
     print('>> Connected to database.')
     return saver
@@ -89,7 +91,8 @@ def _callback(saver, parser_name, data_json):
         saver.save(parser_name, data)
         print('>> Done!')
     except UserInfoError as e:
-        print(f'User info error: {e}.')
+        print(f'User info error: {e}.', file=sys.stderr)
+        sys.exit(1)
 
 
 if __name__ == '__main__':

@@ -1,6 +1,8 @@
 import datetime as dt
-from .binaryutils import BinaryData
 import struct
+import sys
+
+from .binaryutils import BinaryData
 
 
 _UID_FORMAT = 'Q'
@@ -56,7 +58,7 @@ class Config:
     def __init__(self, *fields):
         if not _ALLOWED_FIELDS.issuperset(fields):
             print(f'ERROR: Some of the fields are not allowed.\n\
-Allowed fields are:\n{_ALLOWED_FIELDS}.')
+Allowed fields are:\n{_ALLOWED_FIELDS}.', file=sys.stderr)
         self.fields = set(fields)
 
     def __repr__(self):

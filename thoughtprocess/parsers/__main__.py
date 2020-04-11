@@ -19,12 +19,12 @@ def cli_parse(parser_name, data_file):
     try:
         data = json.loads(data_file.read())
     except ValueError:
-        print(f'Value error: invalid file format.')
+        print(f'Value error: invalid file format.', file=sys.stderr)
         sys.exit(1)
     try:
         parsed_result = run_parser(parser_name, data)
     except NameError as e:
-        print(f'Name error: {e}.')
+        print(f'Name error: {e}.', file=sys.stderr)
         sys.exit(1)
     print(f"Parsed {parser_name} from '{data_file.name}'.")
     print(f'Parsing result:\n{parsed_result}')
@@ -37,21 +37,21 @@ def cli_run_parser(parser_name, mq_url):
     try:
         ParserRegistrator.load_parsers()
     except NameError as e:
-        print(f'Name error: {e}.')
+        print(f'Name error: {e}.', file=sys.stderr)
         sys.exit(1)
     print(f"Parser '{parser_name}' was successfully loaded!")
     try:
         parser = get_parser(parser_name)
     except NameError as e:
-        print(f'Name error: {e}.')
+        print(f'Name error: {e}.', file=sys.stderr)
         sys.exit(1)
     try:
         parser.init_mq(mq_url)
     except KeyError as e:
-        print(f'Key error: {e}.')
+        print(f'Key error: {e}.', file=sys.stderr)
         sys.exit(1)
     except MQConnectionError as e:
-        print(f'MQ connection error: {e}.')
+        print(f'MQ connection error: {e}.', file=sys.stderr)
         sys.exit(1)
 
 

@@ -1,3 +1,3 @@
-FROM thoughtprocess:latest
+FROM base:latest
 EXPOSE 8080
 

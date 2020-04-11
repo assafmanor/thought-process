@@ -39,4 +39,3 @@ class MessageQueueRegistrator:
         host = f.host
         port = f.port
         return mq_class.connect(host, port)
-        

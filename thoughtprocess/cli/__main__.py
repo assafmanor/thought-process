@@ -2,6 +2,7 @@ import click
 import json
 import requests
 import shutil
+import sys
 
 from ..utils.cli_utils import DEFAULT_IP, DEFAULT_API_PORT
 
@@ -22,8 +23,8 @@ def get_users(host, port):
     try:
         print(get(url))
     except requests.exceptions.ConnectionError:
-        print(CONN_ERROR_MSG)
-        return
+        print(CONN_ERROR_MSG, file=sys.stderr)
+        sys.exit(1)
 
 
 @cli.command(name='get-user')
@@ -35,8 +36,8 @@ def get_user(host, port, user_id):
     try:
         print(get(url))
     except requests.exceptions.ConnectionError:
-        print(CONN_ERROR_MSG)
-        return
+        print(CONN_ERROR_MSG, file=sys.stderr)
+        sys.exit(1)
 
 @cli.command(name='get-snapshots')
 @click.option('-h', '--host', default=DEFAULT_IP, type=click.STRING)
@@ -47,8 +48,8 @@ def get_snapshots(host, port, user_id):
     try:
         print(get(url))
     except requests.exceptions.ConnectionError:
-        print(CONN_ERROR_MSG)
-        return
+        print(CONN_ERROR_MSG, file=sys.stderr)
+        sys.exit(1)
 
 
 @cli.command(name='get-snapshot')
@@ -61,8 +62,8 @@ def get_snapshot(host, port, user_id, snapshot_id):
     try:
         print(get(url))
     except requests.exceptions.ConnectionError:
-        print(CONN_ERROR_MSG)
-        return
+        print(CONN_ERROR_MSG, file=sys.stderr)
+        sys.exit(1)
 
 @cli.command(name='get-result')
 @click.option('-h', '--host', default=DEFAULT_IP, type=click.STRING)
@@ -76,8 +77,8 @@ def get_result(host, port, user_id, snapshot_id, result_name, save):
     try:
         result = get(url)
     except requests.exceptions.ConnectionError:
-        print(CONN_ERROR_MSG)
-        return
+        print(CONN_ERROR_MSG, file=sys.stderr)
+        sys.exit(1)
     if not save:
         print(result)
         return

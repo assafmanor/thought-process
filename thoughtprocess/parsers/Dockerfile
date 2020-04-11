@@ -1,1 +1,1 @@
-FROM thoughtprocess:latest
+FROM base:latest

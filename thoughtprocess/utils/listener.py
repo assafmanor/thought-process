@@ -1,6 +1,8 @@
 from .connection import Connection
+
 import errno
 import socket
+import sys
 
 
 class Listener:
@@ -32,9 +34,9 @@ reuseaddr={self.reuseaddr})'
             self.server.bind((self.host, self.port))
         except socket.error as e:
             if e.errno == errno.EADDRINUSE:
-                print(f'ERROR: port {self.port} is already in use.')
+                print(f'ERROR: port {self.port} is already in use.', file=sys.stderr)
             else:
-                print(f'ERROR: {e}')
+                print(f'ERROR: {e}', file=sys.stderr)
             return
         self.server.listen(self.backlog)
 
@@ -42,9 +44,9 @@ reuseaddr={self.reuseaddr})'
         try:
             self.server.close()
         except AttributeError:
-            print('ERROR: Server did not start listening yet.')
+            print('ERROR: Server did not start listening yet.', file=sys.stderr)
         except Exception as e:
-            print(e)
+            print(e, file=sys.stderr)
 
     def accept(self):
         client, _ = self.server.accept()

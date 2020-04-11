@@ -20,10 +20,10 @@ def cli_run_api_server(host, port, database):
     try:
         run_api_server(host, port, database)
     except KeyError as e:
-        print(f'Key error: {e}.')
+        print(f'Key error: {e}.', file=sys.stderr)
         sys.exit(1)
     except DBConnectionError as e:
-        print(f'DB connection error: {e}.')
+        print(f'DB connection error: {e}.', file=sys.stderr)
         sys.exit(1)
 
 

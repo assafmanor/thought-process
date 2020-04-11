@@ -22,6 +22,3 @@ def upload_sample(host, port, path, reader_cls=ProtobufReader):
         print('Done.')
     except KeyboardInterrupt:
         return
-    except Exception as error:
-        print(f'ERROR: failed to upload snapshot: {error}.', file=sys.stderr)
-        return 1
