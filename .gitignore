@@ -2,6 +2,7 @@
 .git
 cortex.proto
 .data
+.vscode
 thoughtprocess/.vscode/
 sample.mind
 sample.mind.gz

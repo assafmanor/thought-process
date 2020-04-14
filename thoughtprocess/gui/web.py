@@ -1,16 +1,16 @@
-from datetime import datetime
+from datetime import datetime, timedelta, timezone
 from flask import abort, Flask, render_template,\
     redirect, request, send_from_directory
 import json
 import re
 import requests
-
+import time
 from ..utils.cli_utils import DEFAULT_IP, DEFAULT_API_PORT, DEFAULT_GUI_PORT
 
 
 BIRTHDATE_STR_FORMAT = "%Y-%m-%d %H:%M:%S"
 DATETIME_STR_FORMAT = "%Y-%m-%d %H:%M:%S.%f"
-
+_GENDER_DICT = {'m': 'Male', 'f':'Female', 'o': 'Other'}
 
 def create_app(api_url):
     app = Flask(__name__,
@@ -33,7 +33,8 @@ def create_app(api_url):
         else:
             users = r.json()
             for user in users:
-                _fix_timestamp(user, 'birthdate', BIRTHDATE_STR_FORMAT)
+                user['gender'] = _GENDER_DICT[user['gender']]
+                _format_timestamp(user, 'birthdate', BIRTHDATE_STR_FORMAT)
             users.sort(key=lambda k: k['id'])
         return render_template("users.html",
             users=users)
@@ -53,9 +54,10 @@ def create_app(api_url):
         snapshots = snapshot_request.json()
         user_request = requests.get(user_url)
         user = user_request.json()
-        _fix_timestamp(user, 'birthdate', BIRTHDATE_STR_FORMAT)
+        user['gender'] = _GENDER_DICT[user['gender']]
+        _format_timestamp(user, 'birthdate', BIRTHDATE_STR_FORMAT)
         for snapshot in snapshots:
-            _fix_timestamp(snapshot, 'timestamp', DATETIME_STR_FORMAT)
+            _format_timestamp(snapshot, 'timestamp', DATETIME_STR_FORMAT)
         snapshots.sort(key=lambda k: k['timestamp'])
         return render_template("user_page.html",
             user=user,
@@ -73,7 +75,7 @@ def create_app(api_url):
             message = req.json()['message']
             abort(404, message)
         snapshot = req.json()
-        _fix_timestamp(snapshot, 'timestamp', DATETIME_STR_FORMAT)
+        _format_timestamp(snapshot, 'timestamp', DATETIME_STR_FORMAT)
         snapshot_url = snapshot_url.replace('api', 'localhost')
         if snapshot['color_image']:
             snapshot['color_image'] = f'{snapshot_url}/color_image/data'
@@ -115,7 +117,7 @@ def run_server(host=DEFAULT_IP, port=DEFAULT_GUI_PORT,
     app.run(host, port)
 
 
-def _fix_timestamp(data_dict, key, dt_format):
-    ts_str = data_dict[key]
-    data_dict[key] = datetime.strptime(
-        ts_str, dt_format)
+def _format_timestamp(data_dict, key, dt_format):
+    ts = data_dict[key]
+    data_dict[key] = datetime.fromtimestamp(
+        ts, timezone(timedelta(hours=3)))

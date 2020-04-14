@@ -27,7 +27,12 @@ class ConnectionHandler(threading.Thread):
         context = ThoughtContext(user, snapshot)
         data_json = context.get_json()
         with ConnectionHandler.lock:
-            self.publish(data_json)
+            try:
+                self.publish(data_json)
+            except ConnectionAbortedError as e:
+                print('Connection lost')
+                print('Thought could not be published.')
+                return
         print('Thought published!')
 
 

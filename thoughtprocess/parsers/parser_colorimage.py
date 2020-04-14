@@ -18,6 +18,7 @@ class ColorImageParser(AbstractParser):
         savepath = path.parent / _COLOR_IMAGE_FILE_NAME
         with path.open('rb') as f:
             img_bytes = f.read()
+        path.unlink() # delete file
         image = Image.frombytes('RGB', (width, height), img_bytes)
         image.save(savepath)
         return {**metadata,

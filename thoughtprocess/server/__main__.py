@@ -21,8 +21,9 @@ def cli(**kwargs):
 @click.option('-p', '--port', default=DEFAULT_SERVER_PORT, type=click.INT)
 @click.argument('url', type=click.STRING)
 def cli_run_server(host, port, url):
-    mq = _init_mq(url, get_exchange_name('server_exchange'))
-    callback = lambda message: _callback(url, message, mq)
+    mq = init_mq(url, get_exchange_name('server_exchange'))
+    _callback.mq = mq
+    callback = lambda message: _callback(url, message)
     try:
         run_server(host, port, callback)
     except ConnectionAbortedError as e:
@@ -30,12 +31,20 @@ def cli_run_server(host, port, url):
         sys.exit(1)
 
 
-def _callback(url, message, mq):
-    mq.publish(message,
-               exchange_name=get_exchange_name('server_exchange'))
+def _callback(url, message):
+    while True:
+        # not really an infinite loop - 
+        # if MQ isn't available there will be a system exit
+        try:
+            _callback.mq.publish(message,
+                exchange_name=get_exchange_name('server_exchange'))
+            return
+        except MQConnectionError as e:
+            _callback.mq = init_mq(url, get_exchange_name('server_exchange'))
 
 
-def _init_mq(url, exchange_name):
+
+def init_mq(url, exchange_name):
     try:
         MQHandler.load_mqs()
     except ModuleNotFoundError as e:

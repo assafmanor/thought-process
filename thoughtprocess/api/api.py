@@ -155,10 +155,10 @@ def _get_db():
 
 
 def _jsonify_user(user):
-    user['birthdate'] = user['birthdate'].__str__()
+    user['birthdate'] = user['birthdate'].timestamp()
     return user
 
 
 def _jsonify_snapshot(snapshot):
-    snapshot['timestamp'] = snapshot['timestamp'].__str__()
+    snapshot['timestamp'] = snapshot['timestamp'].timestamp()
     return snapshot

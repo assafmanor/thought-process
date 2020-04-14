@@ -20,6 +20,7 @@ class DepthImageParser(AbstractParser):
         savepath = path.parent / _DEPTH_IMAGE_FILENAME
         with path.open('rb') as f:
             img_bytes = f.read()
+        path.unlink() # delete file
         image = Image.frombytes('F', (width, height), img_bytes)
         plt.imsave(savepath, image, cmap=cm.RdYlGn)
         return {**metadata,

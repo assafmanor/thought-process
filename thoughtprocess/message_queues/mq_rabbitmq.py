@@ -45,7 +45,13 @@ class RabbitMQ(AbstractMQ):
         self.channel.start_consuming()
 
     def publish(self, message, exchange_name='', queue_name=''):
-        self.channel.basic_publish(exchange=exchange_name,
-                                   routing_key=queue_name,
-                                   body=message)
+        try:
+            self.channel.basic_publish(exchange=exchange_name,
+                                       routing_key=queue_name,
+                                       body=message)
+        except pika.exceptions.ChannelWrongStateError:
+            raise MQConnectionError("channel is closed")
+        except pika.exceptions.StreamLostError:
+            raise MQConnectionError("connection reset")
+
     

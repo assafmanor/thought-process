@@ -28,6 +28,7 @@ class ThoughtContext:
         path = sdir / filename
         return path
 
+
     def get_json(self):
         user = self.user
         snapshot = self.snapshot
@@ -54,5 +55,7 @@ class ThoughtContext:
 def _save_raw_data(dirpath, filename, data):
     dirpath.mkdir(parents=True, exist_ok=True)
     path = dirpath / filename
+    if not data:
+        data = b''
     with open(path, 'wb') as f:
         f.write(data)
