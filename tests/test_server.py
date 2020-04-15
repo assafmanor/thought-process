@@ -8,11 +8,6 @@ import pathlib
 import pytest
 
 
-_SAVE_DIR = '.data/images/420/2020-04-13_16-26-39-6630'
-_COLOR_IMAGE_PATH = f'{_SAVE_DIR}/color_image.bin'
-_DEPTH_IMAGE_PATH = f'{_SAVE_DIR}/depth_image.bin'
-
-
 @pytest.fixture
 def context(cognition):
     user = cognition.get_info()
@@ -30,5 +25,3 @@ def test_context_json(context):
     assert data['translation'] == [1.00000000001, 2.000000000002, 3.0000003]
     assert data['rotation'] == [4.000000004, 5.00000005, 6.00000006, 7.000000007]
     assert data['feelings'] == [-0.5, 0.0, 0.5, 1.0]
-    assert data['color_image'] == [0, 0, _COLOR_IMAGE_PATH]
-    assert data['depth_image'] == [0, 0, _DEPTH_IMAGE_PATH]
