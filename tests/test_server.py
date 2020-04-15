@@ -20,17 +20,12 @@ def context(cognition):
     return ThoughtContext(user, snapshot)
 
 
-def test_save_dir(context):
-    assert context.get_savedir() == pathlib.Path(_SAVE_DIR)
-
-
 def test_context_json(context):
     ctx_json = context.get_json()
     data = json.loads(ctx_json)
     assert data['user_id'] == 420
     assert data['username'] == 'Assaf Manor'
     assert data['gender'] == 'm'
-    assert data['birthdate'] == datetime(1993, 11, 10).timestamp()
     assert data['timestamp'] == 1586784399663
     assert data['translation'] == [1.00000000001, 2.000000000002, 3.0000003]
     assert data['rotation'] == [4.000000004, 5.00000005, 6.00000006, 7.000000007]

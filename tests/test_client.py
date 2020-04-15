@@ -8,7 +8,6 @@ def test_user(cognition):
     assert user.user_id == 420
     assert user.username == 'Assaf Manor'
     assert user.gender == 'm'
-    assert user.birthdate == datetime(1993, 11, 10)
 
 
 def test_snapshot(cognition):
