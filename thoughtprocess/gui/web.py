@@ -1,10 +1,15 @@
 from datetime import datetime, timedelta, timezone
 from flask import abort, Flask, render_template,\
-    redirect, request, send_from_directory
+    redirect, request, Response, send_from_directory
+import io
 import json
+from matplotlib.backends.backend_agg import FigureCanvasAgg as FigureCanvas
+from matplotlib.figure import Figure
+from statistics import mean
 import re
 import requests
 import time
+
 from ..utils.cli_utils import DEFAULT_IP, DEFAULT_API_PORT, DEFAULT_GUI_PORT
 
 
@@ -101,11 +106,57 @@ def create_app(api_url):
             return render_template("search.html", user_id=user_id)
         return redirect(f'/user?id={user_id}')
 
+    @app.route('/stats')
+    def stats():
+        user_id = request.args.get('user_id', type=int)
+        if not user_id:
+            abort(404)
+        user_url = f'{api_url}/users/{user_id}'
+        snapshots_url = f'{api_url}/users/{user_id}/snapshots'
+        req = requests.get(snapshots_url)
+        if req.status_code == 404:
+            message = req.json()['message']
+            abort(404, message)
+        snapshots = req.json()
+        user_request = requests.get(user_url)
+        user = user_request.json()
+        user['gender'] = _GENDER_DICT[user['gender']]
+        _format_timestamp(user, 'birthdate', BIRTHDATE_STR_FORMAT)
+        snapshot_url = f'{api_url}/users/{user_id}/snapshots/' + '{id}'
+        avg_snapshot = _calc_average(snapshot_url, snapshots)
+        return render_template("stats.html",
+            user=user,
+            average=avg_snapshot)
+
     @app.errorhandler(404)
     def page_not_found(e):
         message = re.sub('404 Not Found: ', '', str(e)).capitalize()+'.'
         return render_template('404.html', message=message), 404
 
+    @app.route('/feeling_plot.png')
+    def plot_png():
+        user_id = request.args.get('user_id', type=int)
+        feeling_name = request.args.get('type')
+        if not user_id:
+            abort(404)
+        names = {'hunger': 0, 'thirst': 1, 'exhaustion': 2, 'happiness': 3}
+        if feeling_name not in names:
+            abort(404)
+        snapshots_url = f'{api_url}/users/{user_id}/snapshots'
+        req = requests.get(snapshots_url)
+        if req.status_code == 404:
+            message = req.json()['message']
+            abort(404, message)
+        snapshots = req.json()
+        snapshot_url = f'{api_url}/users/{user_id}/snapshots/' + '{id}'
+        feeling_lst = _get_arranged_feelings(snapshot_url, snapshots)[names[feeling_name]]
+        feeling_lst_perc = [val*100 for val in feeling_lst]
+        fig = _create_figure(feeling_lst_perc,
+            f'{feeling_name.capitalize()} Over Time',
+            f'{feeling_name.capitalize()} in %')
+        output = io.BytesIO()
+        FigureCanvas(fig).print_png(output)
+        return Response(output.getvalue(), mimetype='image/png')
 
     return app
 
@@ -121,3 +172,46 @@ def _format_timestamp(data_dict, key, dt_format):
     ts = data_dict[key]
     data_dict[key] = datetime.fromtimestamp(
         ts, timezone(timedelta(hours=3)))
+
+
+def _calc_average(snapshot_url, snapshots):
+    translation_lst = []
+    rotation_lst = []
+    feelings_lst = []
+    for cur in snapshots:
+        snapshot_id = cur['snapshot_id']
+        req = requests.get(snapshot_url.format(id=snapshot_id))
+        snapshot = req.json()
+        translation_lst.append(snapshot['pose']['translation'])
+        rotation_lst.append(snapshot['pose']['rotation'])
+        feelings_lst.append(snapshot['feelings'])
+    avg_translation = [mean([item[i] for item in translation_lst]) for i in range(3)]
+    avg_rotation = [mean([item[i] for item in rotation_lst]) for i in range(4)]
+    avg_feelings = [mean([item[i] for item in feelings_lst]) for i in range(4)]
+    avg_snapshot = {}
+    avg_snapshot['pose'] = {}
+    avg_snapshot['pose']['translation'] = avg_translation
+    avg_snapshot['pose']['rotation'] = avg_rotation
+    avg_snapshot['feelings'] = avg_feelings
+    return avg_snapshot
+
+
+def _get_arranged_feelings(snapshot_url, snapshots):
+    feelings_lst = []
+    for cur in snapshots:
+        snapshot_id = cur['snapshot_id']
+        req = requests.get(snapshot_url.format(id=snapshot_id))
+        snapshot = req.json()
+        feelings_lst.append(snapshot['feelings'])
+    return [[item[i] for item in feelings_lst] for i in range(4)]
+
+
+def _create_figure(data, title, ylabel):
+    fig = Figure()
+    axis = fig.add_subplot(1, 1, 1)
+    axis.set_title(title)
+    axis.set_ylabel(ylabel)
+    xs = [i+1 for i in range(len(data))]
+    ys = data
+    axis.plot(xs, ys)
+    return fig
