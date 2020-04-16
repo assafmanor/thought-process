@@ -1,0 +1,219 @@
+
+<!DOCTYPE html>
+
+<html xmlns="http://www.w3.org/1999/xhtml">
+  <head>
+    <meta charset="utf-8" />
+    <title>Parsers &#8212; thoughtprocess 1.0 documentation</title>
+    <link rel="stylesheet" href="_static/alabaster.css" type="text/css" />
+    <link rel="stylesheet" href="_static/pygments.css" type="text/css" />
+    <script type="text/javascript" id="documentation_options" data-url_root="./" src="_static/documentation_options.js"></script>
+    <script type="text/javascript" src="_static/jquery.js"></script>
+    <script type="text/javascript" src="_static/underscore.js"></script>
+    <script type="text/javascript" src="_static/doctools.js"></script>
+    <script type="text/javascript" src="_static/language_data.js"></script>
+    <link rel="index" title="Index" href="genindex.html" />
+    <link rel="search" title="Search" href="search.html" />
+    <link rel="next" title="Saver" href="saver.html" />
+    <link rel="prev" title="GUI" href="gui.html" />
+   
+  <link rel="stylesheet" href="_static/custom.css" type="text/css" />
+  
+  
+  <meta name="viewport" content="width=device-width, initial-scale=0.9, maximum-scale=0.9" />
+
+  </head><body>
+  
+
+    <div class="document">
+      <div class="documentwrapper">
+        <div class="bodywrapper">
+          
+
+          <div class="body" role="main">
+            
+  <div class="section" id="parsers">
+<h1>Parsers<a class="headerlink" href="#parsers" title="Permalink to this headline">¶</a></h1>
+<div class="section" id="api-and-cli">
+<h2>API and CLI<a class="headerlink" href="#api-and-cli" title="Permalink to this headline">¶</a></h2>
+<div class="line-block">
+<div class="line">The parsers are classes, built on top of a platform using decorators, and easily deployable as microservices consuming raw data from the queue, and producing parsed results to it.</div>
+</div>
+<div class="line-block">
+<div class="line">They are located in thoughtprocess.parsers, and expose the following API:</div>
+</div>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span>&gt;&gt;&gt; from thoughtprocess.parsers import run_parser
+&gt;&gt;&gt; data = …
+&gt;&gt;&gt; result = run_parser(&#39;pose&#39;, data)
+</pre></div>
+</div>
+<div class="line-block">
+<div class="line">Which accepts a parser name and some raw data, as consumed from the message queue, and returns the result, as published to the message queue.</div>
+</div>
+<div class="line-block">
+<div class="line">It should also provide the following CLI:</div>
+</div>
+<div class="highlight-bash notranslate"><div class="highlight"><pre><span></span>$ python -m thoughtprocess.parsers parse <span class="s1">&#39;pose&#39;</span> <span class="s1">&#39;snapshot.raw&#39;</span> &gt; <span class="s1">&#39;pose.result&#39;</span>
+</pre></div>
+</div>
+<div class="line-block">
+<div class="line">Which accepts a parser name and a path to some raw data, as consumed from the message queue, and prints the result, as published to the message queue (optionally redirecting it to a file). This way of invocation runs the parser exactly once.</div>
+</div>
+<div class="line-block">
+<div class="line">the CLI also supports running the parser as a service, which works with a message queue indefinitely.</div>
+</div>
+<blockquote>
+<div><p>$ python -m thoughtprocess.parsers run-parser ‘pose’ ‘rabbitmq://127.0.0.1:5672/’</p>
+</div></blockquote>
+</div>
+<div class="section" id="implemented-parsers">
+<h2>Implemented Parsers<a class="headerlink" href="#implemented-parsers" title="Permalink to this headline">¶</a></h2>
+<dl>
+<dt><strong>Pose</strong></dt><dd><p>Collects the translation and the rotation of the user’s head at a given timestamp, and publishes the result to a dedicated topic.</p>
+</dd>
+<dt><strong>Color Image</strong></dt><dd><div class="line-block">
+<div class="line">Collects the color image of what the user was seeing at a given timestamp, and publishes the result to a dedicated topic.</div>
+<div class="line"><em>Note</em>: the data itself is saved to disk, and only the metadata is published.</div>
+</div>
+</dd>
+<dt><strong>Depth Image</strong></dt><dd><div class="line-block">
+<div class="line">Collects the depth image of what the user was seeing at a given timestamp, and publishes the result to a dedicated topic.</div>
+<div class="line">A depth image is a width × height array of floats, where each float represents how far the nearest surface from the user was, in meters. So, if the user was looking at a chair, the depth of its outline would be its proximity to her (for example, 0.5 for half a meter), and the wall behind it would be farther (for example, 1.0 for one meter).</div>
+<div class="line"><em>Note</em>: the data itself is saved to disk, and only the metadata is published.</div>
+</div>
+</dd>
+<dt><strong>Feelings</strong></dt><dd><p>Collects the feelings the user was experiencing at any timestamp, and publishes the result to a dedicated topic.</p>
+</dd>
+</dl>
+</div>
+<div class="section" id="adding-new-parsers">
+<h2>Adding New Parsers<a class="headerlink" href="#adding-new-parsers" title="Permalink to this headline">¶</a></h2>
+<p>These are the steps needed in order to add a new parser:</p>
+<ol class="arabic">
+<li><p>Create a new python module in thoughtprocess.parsers and name it ‘<em>parser_&lt;parser_name&gt;.py</em>’.</p></li>
+<li><p>Add the following imports to your module:</p>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="kn">from</span> <span class="nn">.abstractparser</span> <span class="kn">import</span> <span class="n">AbstractParser</span>
+<span class="kn">from</span> <span class="nn">.parser_registrator</span> <span class="kn">import</span> <span class="n">ParserRegistrator</span>
+</pre></div>
+</div>
+</li>
+<li><p>Create a class and have it extend AbstractParser.</p>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="k">class</span> <span class="nc">ParserNameParser</span><span class="p">(</span><span class="n">AbstractParser</span><span class="p">):</span>
+    <span class="c1"># TODO</span>
+</pre></div>
+</div>
+</li>
+<li><p>Add the following decorator above the class declaration:</p>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="hll"><span class="nd">@ParserRegistrator.register</span><span class="p">(</span><span class="s1">&#39;parser_name&#39;</span><span class="p">)</span>
+</span><span class="k">class</span> <span class="nc">ParserNameParser</span><span class="p">(</span><span class="n">AbstractParser</span><span class="p">):</span>
+    <span class="c1"># TODO</span>
+</pre></div>
+</div>
+<div class="line-block">
+<div class="line"><em>Note</em>: the registered parser_name and the parser name in the file’s name aren’t required to be identical.</div>
+</div>
+</li>
+<li><p>Implement the parse class method as such:</p>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="nd">@ParserRegistrator.register</span><span class="p">(</span><span class="s1">&#39;parser_name&#39;</span><span class="p">)</span>
+<span class="k">class</span> <span class="nc">ParserNameParser</span><span class="p">(</span><span class="n">AbstractParser</span><span class="p">):</span>
+    <span class="nd">@classmethod</span>
+    <span class="k">def</span> <span class="nf">parse</span><span class="p">(</span><span class="bp">cls</span><span class="p">,</span> <span class="n">data</span><span class="p">):</span>
+        <span class="n">metadata</span> <span class="o">=</span> <span class="bp">cls</span><span class="o">.</span><span class="n">get_metadata</span><span class="p">(</span><span class="n">data</span><span class="p">)</span>
+<span class="hll">        <span class="c1">#</span>
+</span><span class="hll">        <span class="c1"># This is where the actual parsing</span>
+</span><span class="hll">        <span class="c1"># should take place</span>
+</span><span class="hll">        <span class="c1">#</span>
+</span>        <span class="k">return</span> <span class="p">{</span><span class="o">**</span><span class="n">metadata</span><span class="p">,</span> <span class="o">*</span><span class="n">parsed_results</span><span class="p">}</span>
+</pre></div>
+</div>
+<div class="line-block">
+<div class="line"><em>Note</em>: the <em>data</em> parameter is a python dictionary that has the following keys:</div>
+<div class="line">user_id, username, birthdate, gender, timestamp, translation, rotation, color_image, depth_image, feelings.</div>
+</div>
+</li>
+<li><p>You’re good to go!</p></li>
+</ol>
+</div>
+</div>
+
+
+          </div>
+          
+        </div>
+      </div>
+      <div class="sphinxsidebar" role="navigation" aria-label="main navigation">
+        <div class="sphinxsidebarwrapper">
+<h1 class="logo"><a href="index.html">thoughtprocess</a></h1>
+
+
+
+
+
+
+
+
+<h3>Navigation</h3>
+<p class="caption"><span class="caption-text">Contents:</span></p>
+<ul class="current">
+<li class="toctree-l1"><a class="reference internal" href="api.html">API</a></li>
+<li class="toctree-l1"><a class="reference internal" href="cli.html">CLI</a></li>
+<li class="toctree-l1"><a class="reference internal" href="client.html">Client</a></li>
+<li class="toctree-l1"><a class="reference internal" href="gui.html">GUI</a></li>
+<li class="toctree-l1 current"><a class="current reference internal" href="#">Parsers</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="#api-and-cli">API and CLI</a></li>
+<li class="toctree-l2"><a class="reference internal" href="#implemented-parsers">Implemented Parsers</a></li>
+<li class="toctree-l2"><a class="reference internal" href="#adding-new-parsers">Adding New Parsers</a></li>
+</ul>
+</li>
+<li class="toctree-l1"><a class="reference internal" href="saver.html">Saver</a></li>
+<li class="toctree-l1"><a class="reference internal" href="server.html">Server</a></li>
+</ul>
+
+<div class="relations">
+<h3>Related Topics</h3>
+<ul>
+  <li><a href="index.html">Documentation overview</a><ul>
+      <li>Previous: <a href="gui.html" title="previous chapter">GUI</a></li>
+      <li>Next: <a href="saver.html" title="next chapter">Saver</a></li>
+  </ul></li>
+</ul>
+</div>
+<div id="searchbox" style="display: none" role="search">
+  <h3 id="searchlabel">Quick search</h3>
+    <div class="searchformwrapper">
+    <form class="search" action="search.html" method="get">
+      <input type="text" name="q" aria-labelledby="searchlabel" />
+      <input type="submit" value="Go" />
+    </form>
+    </div>
+</div>
+<script type="text/javascript">$('#searchbox').show(0);</script>
+
+
+
+
+
+
+
+
+        </div>
+      </div>
+      <div class="clearer"></div>
+    </div>
+    <div class="footer">
+      &copy;2020, Assaf Manor.
+      
+      |
+      Powered by <a href="http://sphinx-doc.org/">Sphinx 2.2.1</a>
+      &amp; <a href="https://github.com/bitprophet/alabaster">Alabaster 0.7.12</a>
+      
+      |
+      <a href="_sources/parsers.rst.txt"
+          rel="nofollow">Page source</a>
+    </div>
+
+    
+
+    
+  </body>
+</html>

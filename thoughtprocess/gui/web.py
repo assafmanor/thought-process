@@ -29,9 +29,6 @@ def create_app(api_url):
             users = None
         else:
             users = r.json()
-            for user in users:
-                user['gender'] = _GENDER_DICT[user['gender']]
-                format_timestamp(user, 'birthdate')
             users.sort(key=lambda k: k['id'])
         return render_template("users.html",
             users=users)

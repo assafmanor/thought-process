@@ -19,8 +19,6 @@
         {% else %}
             <th scope="col">#</th>
             <th scope="col">Name</th>
-            <th scope="col">Gender</th>
-            <th scope="col">Birthdate</th>
         </tr>
     </thead>
     <tbody>
@@ -28,8 +26,6 @@
         <tr class="table-row" data-href="user?id={{ user['id'] }}">
             <th scope="row">{{ user['id'] }}</th>
             <td>{{ user['name'] }}</td>
-            <td>{{ user['gender'] }}</td>
-            <td>{{ user['birthdate'].strftime('%d %b %Y') }}</td>
         </tr>
             {% endfor %}
     {% endif %}

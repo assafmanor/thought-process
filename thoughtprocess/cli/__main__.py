@@ -11,7 +11,7 @@ CONN_ERROR_MSG = 'Connection error: could not connect to the API server.'
 BIRTHDATE_STR_FORMAT = "%Y-%m-%d"
 DATETIME_STR_FORMAT = "%Y-%m-%d %H:%M:%S.%f"
 _GENDER_DICT = {'m': 'Male', 'f':'Female', 'o': 'Other'}
-
+_VALID_RESULT_NAMES = ['pose', 'color-image', 'depth-image', 'feelings']
 
 @click.group()
 def cli(**kwargs):
@@ -28,9 +28,6 @@ def get_users(host, port):
     except requests.exceptions.ConnectionError:
         print(CONN_ERROR_MSG, file=sys.stderr)
         sys.exit(1)
-    for user in users:
-        user['gender'] = _GENDER_DICT[user['gender']]
-        format_timestamp(user, 'birthdate', BIRTHDATE_STR_FORMAT)
     users.sort(key=lambda k: k['id'])
     lists = make_list_of_dicts_into_lists(users)
     print_lists_with_padding(lists)
@@ -97,6 +94,9 @@ def get_snapshot(host, port, user_id, snapshot_id):
 @click.argument('snapshot_id', type=click.INT)
 @click.argument('result_name', type=click.STRING)
 def get_result(host, port, user_id, snapshot_id, result_name, save):
+    if result_name not in _VALID_RESULT_NAMES:
+        raise click.ClickException(
+    f"invalid result name.\nValid names: {', '.join(_VALID_RESULT_NAMES)}.")
     url = f'http://{host}:{port}/users/{user_id}/snapshots/{snapshot_id}/{result_name}'
     try:
         result = get(url)

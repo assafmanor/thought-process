@@ -29,7 +29,8 @@ class RestfulApi:
             if not users:
                 abort(404, message=NO_USERS_MSG)
             for user in users:
-                _jsonify_user(user)
+                del user["gender"]
+                del user["birthdate"]
             return users
 
     class UserId(Resource):
@@ -89,6 +90,9 @@ class RestfulApi:
                     snapshot_id=snapshot_id,
                     user_id=user_id)
                 abort(404, message=message)
+            # make result names such as 'color_image' invalid
+            result_name = result_name.replace('_', '*')
+            result_name = result_name.replace('-', '_')
             result = db.get_data(user_id, snapshot_id, result_name)
             if not result:
                 message = NO_RESULTS_MSG.format(
