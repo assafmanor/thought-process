@@ -118,16 +118,18 @@ def get_result(host, port, user_id, snapshot_id, result_name, save):
     print(f">> Result saved to '{save}'.")
 
 
-def get_error_message(request):
+def print_error_and_exit(request):
     data = request.json()
     message = data['message']
-    return f'ERROR: {message}.'
+    print(f'ERROR: {message}.')
+    sys.exit(0)
+
 
 
 def get(url):
     r = requests.get(url)
     if r.status_code == 404:
-        return(get_error_message(r))
+        print_error_and_exit(r)
     return r.json()
 
 

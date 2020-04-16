@@ -6,10 +6,12 @@ def print_lists_with_padding(lists):
 	for lst in lists:
 		print("".join(str(item).ljust(col_width_lst[i]) for i, item in enumerate(lst)))
 
+
 def print_listed_dict(d):
     keys_width = max([len(str(key)) for key in d.keys()]) + 3
     for key,val in d.items():
         print(f'{str(key).ljust(keys_width)}{val}')
+
 
 def make_dict_into_lists(d):
     lists = []
