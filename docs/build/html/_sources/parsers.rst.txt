@@ -27,6 +27,8 @@ API and CLI
 
 | the CLI also supports running the parser as a service, which works with a message queue indefinitely.
 
+.. code-block:: bash
+
     $ python -m thoughtprocess.parsers run-parser 'pose' 'rabbitmq://127.0.0.1:5672/'
 
 
