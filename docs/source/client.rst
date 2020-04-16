@@ -28,6 +28,6 @@ The Sample
 | 
 | First, we have a single User message, and then as many Snapshot messages as necessary.\
 | 
-| The user and snapshot messages are defined in `this .proto file <_static/cortex.proto>`_.
+| The user and snapshot messages are defined in `this .proto file <https://storage.googleapis.com/advanced-system-design/cortex.proto>`_.
 | 
 | An example sample is available `here <https://storage.googleapis.com/advanced-system-design/sample.mind.gz>`_.

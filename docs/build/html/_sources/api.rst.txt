@@ -1,8 +1,8 @@
 API
 ===
 
-Python API
-^^^^^^^^^^
+API and CLI
+^^^^^^^^^^^
 
 The API is available as thoughtprocess.api and exposes the following API:
 
@@ -24,7 +24,7 @@ And the following CLI:
         -d/--database 'postgresql://127.0.0.1:5432'
 
 
-RESUful API
+RESTful API
 ^^^^^^^^^^^
 
 The API server supports the following RESTful API endpoints:

@@ -13,7 +13,7 @@ And the following CLI:
 
 .. code-block:: bash
 
-    $ python -m cortex.server run-server \
-        -h/--host '127.0.0.1'          \
-        -p/--port 8000                 \
+    $ python -m thoughtprocess.server run-server \
+        -h/--host '127.0.0.1'            \
+        -p/--port 8000                   \
         'rabbitmq://127.0.0.1:5672/'

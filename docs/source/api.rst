@@ -1,8 +1,8 @@
 API
 ===
 
-Python API
-^^^^^^^^^^
+API and CLI
+^^^^^^^^^^^
 
 The API is available as thoughtprocess.api and exposes the following API:
 
