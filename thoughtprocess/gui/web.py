@@ -1,21 +1,13 @@
-from datetime import datetime, timedelta, timezone
 from flask import abort, Flask, render_template,\
     redirect, request, Response, send_from_directory
-import io
-import json
-from matplotlib.backends.backend_agg import FigureCanvasAgg as FigureCanvas
-from matplotlib.figure import Figure
-from statistics import mean
 import re
 import requests
-import time
 
 from ..utils.cli_utils import DEFAULT_IP, DEFAULT_API_PORT, DEFAULT_GUI_PORT
+from .utils import *
 
-
-BIRTHDATE_STR_FORMAT = "%Y-%m-%d %H:%M:%S"
-DATETIME_STR_FORMAT = "%Y-%m-%d %H:%M:%S.%f"
 _GENDER_DICT = {'m': 'Male', 'f':'Female', 'o': 'Other'}
+
 
 def create_app(api_url):
     app = Flask(__name__,
@@ -39,7 +31,7 @@ def create_app(api_url):
             users = r.json()
             for user in users:
                 user['gender'] = _GENDER_DICT[user['gender']]
-                _format_timestamp(user, 'birthdate', BIRTHDATE_STR_FORMAT)
+                format_timestamp(user, 'birthdate')
             users.sort(key=lambda k: k['id'])
         return render_template("users.html",
             users=users)
@@ -60,9 +52,9 @@ def create_app(api_url):
         user_request = requests.get(user_url)
         user = user_request.json()
         user['gender'] = _GENDER_DICT[user['gender']]
-        _format_timestamp(user, 'birthdate', BIRTHDATE_STR_FORMAT)
+        format_timestamp(user, 'birthdate')
         for snapshot in snapshots:
-            _format_timestamp(snapshot, 'timestamp', DATETIME_STR_FORMAT)
+            format_timestamp(snapshot, 'timestamp')
         snapshots.sort(key=lambda k: k['timestamp'])
         return render_template("user_page.html",
             user=user,
@@ -80,7 +72,7 @@ def create_app(api_url):
             message = req.json()['message']
             abort(404, message)
         snapshot = req.json()
-        _format_timestamp(snapshot, 'timestamp', DATETIME_STR_FORMAT)
+        format_timestamp(snapshot, 'timestamp')
         snapshot_url = snapshot_url.replace('api', 'localhost')
         if snapshot['color_image']:
             snapshot['color_image'] = f'{snapshot_url}/color_image/data'
@@ -121,9 +113,9 @@ def create_app(api_url):
         user_request = requests.get(user_url)
         user = user_request.json()
         user['gender'] = _GENDER_DICT[user['gender']]
-        _format_timestamp(user, 'birthdate', BIRTHDATE_STR_FORMAT)
+        format_timestamp(user, 'birthdate')
         snapshot_url = f'{api_url}/users/{user_id}/snapshots/' + '{id}'
-        avg_snapshot = _calc_average(snapshot_url, snapshots)
+        avg_snapshot = calc_average(snapshot_url, snapshots)
         return render_template("stats.html",
             user=user,
             average=avg_snapshot)
@@ -149,9 +141,9 @@ def create_app(api_url):
             abort(404, message)
         snapshots = req.json()
         snapshot_url = f'{api_url}/users/{user_id}/snapshots/' + '{id}'
-        feeling_lst = _get_arranged_feelings(snapshot_url, snapshots)[names[feeling_name]]
+        feeling_lst = get_arranged_feelings(snapshot_url, snapshots)[names[feeling_name]]
         feeling_lst_perc = [val*100 for val in feeling_lst]
-        fig = _create_figure(feeling_lst_perc,
+        fig = create_figure(feeling_lst_perc,
             f'{feeling_name.capitalize()} Over Time',
             f'{feeling_name.capitalize()} in %')
         output = io.BytesIO()
@@ -166,52 +158,3 @@ def run_server(host=DEFAULT_IP, port=DEFAULT_GUI_PORT,
     api_url = f'http://{api_host}:{api_port}'
     app = create_app(api_url)
     app.run(host, port)
-
-
-def _format_timestamp(data_dict, key, dt_format):
-    ts = data_dict[key]
-    data_dict[key] = datetime.fromtimestamp(
-        ts, timezone(timedelta(hours=3)))
-
-
-def _calc_average(snapshot_url, snapshots):
-    translation_lst = []
-    rotation_lst = []
-    feelings_lst = []
-    for cur in snapshots:
-        snapshot_id = cur['snapshot_id']
-        req = requests.get(snapshot_url.format(id=snapshot_id))
-        snapshot = req.json()
-        translation_lst.append(snapshot['pose']['translation'])
-        rotation_lst.append(snapshot['pose']['rotation'])
-        feelings_lst.append(snapshot['feelings'])
-    avg_translation = [mean([item[i] for item in translation_lst]) for i in range(3)]
-    avg_rotation = [mean([item[i] for item in rotation_lst]) for i in range(4)]
-    avg_feelings = [mean([item[i] for item in feelings_lst]) for i in range(4)]
-    avg_snapshot = {}
-    avg_snapshot['pose'] = {}
-    avg_snapshot['pose']['translation'] = avg_translation
-    avg_snapshot['pose']['rotation'] = avg_rotation
-    avg_snapshot['feelings'] = avg_feelings
-    return avg_snapshot
-
-
-def _get_arranged_feelings(snapshot_url, snapshots):
-    feelings_lst = []
-    for cur in snapshots:
-        snapshot_id = cur['snapshot_id']
-        req = requests.get(snapshot_url.format(id=snapshot_id))
-        snapshot = req.json()
-        feelings_lst.append(snapshot['feelings'])
-    return [[item[i] for item in feelings_lst] for i in range(4)]
-
-
-def _create_figure(data, title, ylabel):
-    fig = Figure()
-    axis = fig.add_subplot(1, 1, 1)
-    axis.set_title(title)
-    axis.set_ylabel(ylabel)
-    xs = [i+1 for i in range(len(data))]
-    ys = data
-    axis.plot(xs, ys)
-    return fig
