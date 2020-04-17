@@ -20,9 +20,9 @@ and the following CLI command:
 
 .. code-block:: bash
 
-    $ python -m thoughtprocess.gui run-server \
-        -h/--host '127.0.0.1'       \
-        -p/--port 8080              \
-        -H/--api-host '127.0.0.1'   \
+    $ python -m thoughtprocess.gui run-server  \
+        -h/--host '127.0.0.1'                  \
+        -p/--port 8080                         \
+        -H/--api-host '127.0.0.1'              \
         -P/--api-port 5000
 

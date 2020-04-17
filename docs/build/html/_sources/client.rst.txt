@@ -15,8 +15,8 @@ And the following CLI:
 .. code-block:: bash
 
     $ python -m thoughtprocess.client upload-sample \
-        -h/--host '127.0.0.1'             \
-        -p/--port 8000                    \
+        -h/--host '127.0.0.1'                       \
+        -p/--port 8000                              \
         'snapshot.mind.gz'
     …
 
@@ -24,8 +24,9 @@ And the following CLI:
 The Sample
 ^^^^^^^^^^
 
-| The format of the sample is a gzipped binary with a sequence of message sizes (uint32) and messages.
+| The format of the sample is a gzipped protobuf binary with a sequence of message sizes (uint32) and messages.
 | 
+| Since having very large protobufs is not recommended, we've used a hybrid solution: a uint32 of the message size, and then the message.
 | First, we have a single User message, and then as many Snapshot messages as necessary.\
 | 
 | The user and snapshot messages are defined in `this .proto file <https://storage.googleapis.com/advanced-system-design/cortex.proto>`_.

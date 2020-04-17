@@ -97,7 +97,7 @@ These are the steps needed in order to add a new parser:
                # This is where the actual parsing 
                # should take place
                #
-               return {**metadata, *parsed_results}
+               return {**metadata, **parsed_results}
 
    | *Note*: the *data* parameter is a python dictionary that has the following keys:
    | user_id, username, birthdate, gender, timestamp, translation, rotation, color_image, depth_image, feelings.
