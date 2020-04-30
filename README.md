@@ -22,7 +22,7 @@ Submitted for the 'Advanced System Design' course in TAU.
 1. Clone the repository and enter it:
 
     ```sh
-    $ git clone git@github.com:assafmanor/thoughtprocess.git
+    $ git clone https://github.com/assafmanor/thoughtprocess.git
     ...
     $ cd thoughtprocess
     ```
